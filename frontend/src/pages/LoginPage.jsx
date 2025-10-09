@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext.jsx'; 
 // CORRECCIÓN: Usar ./LoginPage.css porque está en la misma carpeta 'pages'
 import './LoginPage.css'; 
+import SiciLogo from '../assets/sici_t.png'; // 1. IMPORTACIÓN CORRECTA DESDE ASSETS
 
 const LoginPage = () => {
     // Usamos el contexto para acceder a la función login y logout
@@ -35,12 +36,10 @@ const LoginPage = () => {
             } else {
                 // Si el login fue exitoso pero el rol no coincide
                 setError(`Tu rol registrado es "${userRole}". Selecciona el rol correcto.`);
-                // Forzamos el cierre de sesión para limpiar la cookie
                 await logout();
             }
 
         } catch (err) {
-            // Manejar errores de credenciales (401) o conexión
              if (err.response && err.response.status === 401) {
                 setError('Credenciales inválidas. Verifica tu usuario, contraseña.');
             } else {
@@ -52,7 +51,15 @@ const LoginPage = () => {
     return (
         <div className="login-container">
             <div className="login-box">
-                <h1 className="login-title">SICI</h1>
+                
+                {/* 2. USO CORRECTO: Usamos la variable importada (SiciLogo) */}
+                <img 
+                    src={SiciLogo} 
+                    alt="Logo SICI" 
+                    className="login-logo" 
+                />
+                
+                <h1 className="login-title"></h1> 
                 <p className="login-subtitle">Sistema de Comando de Incidentes</p>
 
                 <form onSubmit={handleSubmit}>

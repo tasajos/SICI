@@ -22,6 +22,17 @@
     text-align: center;
 }
 
+.login-logo {
+    width: 100%; /* Permite que ocupe todo el ancho de su contenedor (.login-box) */
+    max-width: 350px; /* Tamaño máximo para que no sea gigante */
+    height: auto;
+    margin-bottom: 25px; /* Espacio entre el logo y el texto SICI */
+    display: block; /* Asegura que el margin: 0 auto funcione */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
 .login-title {
     color: #e74c3c; /* Rojo de emergencia */
     margin-bottom: 5px;

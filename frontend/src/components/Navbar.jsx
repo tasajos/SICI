@@ -1,43 +1,62 @@
-import React, { useContext } from 'react'; // <-- useContext
+import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext'; // <-- Importar el Contexto
-import styled from 'styled-components';
+import { AuthContext } from '../context/AuthContext';
+import './Navbar.css'; // Usaremos CSS simple para los estilos
 
-// ... (Estilos styled-components se mantienen igual) ...
-
-// --- Lógica del Componente ---
 const Navbar = () => {
-    const { user, isLoading, logout } = useContext(AuthContext); // <-- Usamos useContext
+    const { user, isLoading, logout } = useContext(AuthContext);
     const navigate = useNavigate();
 
+    // Función para definir los enlaces basados en el rol
+    const getNavLinks = (role) => {
+        switch (role) {
+            case 'Administrador':
+                return [
+                    { path: '/admin', name: 'Dashboard' },
+                    { path: '/admin/incidents', name: 'Gestión de Incidentes' }, // NUEVO ENLACE
+                    { path: '/admin/users', name: 'Gestión de Usuarios' },
+                ];
+            case 'Voluntario':
+                return [
+                    { path: '/volunteer', name: 'Mi Misión' },
+                    { path: '/volunteer/incidents', name: 'Incidentes Activos' },
+                ];
+            case 'Estado':
+                return [
+                    { path: '/status', name: 'Mapa Operativo' },
+                    { path: '/status/feed', name: 'Flujo de Incidentes' },
+                ];
+            default:
+                return [];
+        }
+    };
+
     const handleLogout = async () => {
-        await logout(); // La función logout del contexto ya redirige a '/'
+        await logout();
     };
 
     if (isLoading || !user) {
-        return null; // Opcional: Esto no debería pasar en rutas protegidas, pero es seguro.
+        return null;
     }
-
-    // ... (La lógica de getNavLinks(role) se mantiene igual) ...
 
     const links = getNavLinks(user.role);
 
     return (
-        <NavContainer>
-            <Logo to={links[0]?.path || '/'}>
+        <nav className="navbar-container">
+            <Link to={links[0]?.path || '/'} className="navbar-logo">
                 SICI - {user.role}
-            </Logo>
-            <NavList>
+            </Link>
+            <ul className="navbar-list">
                 {links.map(link => (
-                    <NavItem key={link.path}>
-                        <NavLink to={link.path}>{link.name}</NavLink>
-                    </NavItem>
+                    <li key={link.path} className="navbar-item">
+                        <Link to={link.path} className="navbar-link">{link.name}</Link>
+                    </li>
                 ))}
-            </NavList>
-            <LogoutButton onClick={handleLogout}>
+            </ul>
+            <button onClick={handleLogout} className="navbar-logout-btn">
                 Salir ({user.username})
-            </LogoutButton>
-        </NavContainer>
+            </button>
+        </nav>
     );
 };
 
