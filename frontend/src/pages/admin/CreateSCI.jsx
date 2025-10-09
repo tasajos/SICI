@@ -43,19 +43,39 @@ const CreateSCI = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Aquí iría la lógica para enviar los datos al backend
-        console.log('Datos del SCI:', formData);
-        
-        // Simulación de éxito
-        alert('SCI creado exitosamente!');
-        navigate('/admin');
-    };
-
     const handleCancel = () => {
         if (window.confirm('¿Estás seguro de que deseas cancelar? Los datos no guardados se perderán.')) {
             navigate('/admin');
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        try {
+            // Enviar datos al backend
+            const response = await fetch('http://localhost:3310/api/incidents/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Importante para enviar la cookie de sesión
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Error al crear el SCI');
+            }
+
+            // Éxito
+            alert(`SCI creado exitosamente! ID: ${result.incidentId}`);
+            navigate('/admin');
+            
+        } catch (error) {
+            console.error('Error al crear SCI:', error);
+            alert(`Error: ${error.message}`);
         }
     };
 
