@@ -1,0 +1,87 @@
+/*
+ * SICI - Estilos para la Interfaz de Login
+ * Archivo: LoginPage.css
+ */
+
+.login-container {
+    display: flex;
+    justify-content: center; /* Centrado horizontal */
+    align-items: center; /* Centrado vertical */
+    min-height: 100vh; /* Usa la altura total del contenedor padre (#root) */
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-box {
+    background-color: #ffffff;
+    padding: 50px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.login-title {
+    color: #e74c3c; /* Rojo de emergencia */
+    margin-bottom: 5px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.login-subtitle {
+    color: #7f8c8d;
+    margin-bottom: 40px;
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-input:focus, .form-select:focus {
+    border-color: #e74c3c;
+    outline: none;
+}
+
+.login-button {
+    padding: 15px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.login-button:hover {
+    background-color: #c0392b;
+}
+
+.error-text {
+    color: #c0392b;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
