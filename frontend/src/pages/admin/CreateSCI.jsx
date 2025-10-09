@@ -12,10 +12,10 @@ const CreateSCI = () => {
         location: '',
         description: '',
         commander: '',
-        operationsChief: '',
-        logisticsChief: '',
-        planningChief: '',
-        financeChief: '',
+        publicInformationOfficer: '',  // Cambiado de operationsChief
+        liaisonOfficer: '',            // Cambiado de logisticsChief
+        safetyOfficer: '',             // Cambiado de planningChief
+        // financeChief removido temporalmente
         startDate: '',
         estimatedDuration: '',
         resourcesNeeded: '',
@@ -24,7 +24,9 @@ const CreateSCI = () => {
 
     const incidentTypes = [
         'Incendio Forestal',
-        'Inundación',
+        'Incendio Estructural',
+        'Inundación',     
+        'Rescate Animal',
         'Terremoto',
         'Accidente de Tránsito',
         'Derrame Químico',
@@ -165,52 +167,42 @@ const CreateSCI = () => {
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="operationsChief">Jefe de Operaciones</label>
+                                <label htmlFor="publicInformationOfficer">Oficial de Información Pública</label>
                                 <input
                                     type="text"
-                                    id="operationsChief"
-                                    name="operationsChief"
-                                    value={formData.operationsChief}
+                                    id="publicInformationOfficer"
+                                    name="publicInformationOfficer"
+                                    value={formData.publicInformationOfficer}
                                     onChange={handleChange}
-                                    placeholder="Nombre del jefe de operaciones"
+                                    placeholder="Nombre del oficial de información pública"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="logisticsChief">Jefe de Logística</label>
+                                <label htmlFor="liaisonOfficer">Oficial de Enlaces</label>
                                 <input
                                     type="text"
-                                    id="logisticsChief"
-                                    name="logisticsChief"
-                                    value={formData.logisticsChief}
+                                    id="liaisonOfficer"
+                                    name="liaisonOfficer"
+                                    value={formData.liaisonOfficer}
                                     onChange={handleChange}
-                                    placeholder="Nombre del jefe de logística"
+                                    placeholder="Nombre del oficial de enlaces"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="planningChief">Jefe de Planificación</label>
+                                <label htmlFor="safetyOfficer">Oficial de Seguridad</label>
                                 <input
                                     type="text"
-                                    id="planningChief"
-                                    name="planningChief"
-                                    value={formData.planningChief}
+                                    id="safetyOfficer"
+                                    name="safetyOfficer"
+                                    value={formData.safetyOfficer}
                                     onChange={handleChange}
-                                    placeholder="Nombre del jefe de planificación"
+                                    placeholder="Nombre del oficial de seguridad"
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label htmlFor="financeChief">Jefe de Finanzas/Administración</label>
-                                <input
-                                    type="text"
-                                    id="financeChief"
-                                    name="financeChief"
-                                    value={formData.financeChief}
-                                    onChange={handleChange}
-                                    placeholder="Nombre del jefe de finanzas"
-                                />
-                            </div>
+                            {/* Jefe de Finanzas removido temporalmente */}
                         </div>
                     </div>
 
