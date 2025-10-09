@@ -10,6 +10,9 @@ const IncidentList = () => {
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('todos');
+    const [selectedIncident, setSelectedIncident] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalLoading, setModalLoading] = useState(false);
 
     // Cargar incidentes al montar el componente
     useEffect(() => {
@@ -39,6 +42,29 @@ const IncidentList = () => {
         }
     };
 
+    const fetchIncidentDetails = async (incidentId) => {
+        try {
+            setModalLoading(true);
+            const response = await fetch(`http://localhost:3310/api/incidents/${incidentId}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Error al cargar detalles del incidente');
+            }
+
+            return result.data;
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
     const handleStatusChange = async (incidentId, newStatus) => {
         try {
             const response = await fetch(`http://localhost:3310/api/incidents/${incidentId}/status`, {
@@ -63,6 +89,11 @@ const IncidentList = () => {
                     : incident
             ));
 
+            // Si el incidente seleccionado está abierto, actualizarlo también
+            if (selectedIncident && selectedIncident.id === incidentId) {
+                setSelectedIncident(prev => ({ ...prev, status: newStatus }));
+            }
+
             alert(`Estado actualizado a: ${newStatus}`);
         } catch (error) {
             console.error('Error:', error);
@@ -70,8 +101,19 @@ const IncidentList = () => {
         }
     };
 
-    const handleViewDetails = (incidentId) => {
-        navigate(`/admin/incidents/${incidentId}`);
+    const handleViewDetails = async (incidentId) => {
+        try {
+            const incidentDetails = await fetchIncidentDetails(incidentId);
+            setSelectedIncident(incidentDetails);
+            setShowModal(true);
+        } catch (error) {
+            alert(`Error al cargar detalles: ${error.message}`);
+        }
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedIncident(null);
     };
 
     // Filtrar incidentes
@@ -134,6 +176,11 @@ const IncidentList = () => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
         return date.toLocaleString('es-ES');
+    };
+
+    const formatText = (text) => {
+        if (!text || text.trim() === '') return 'No especificado';
+        return text;
     };
 
     if (loading) {
@@ -278,9 +325,9 @@ const IncidentList = () => {
                                                 <button 
                                                     className="btn-view"
                                                     onClick={() => handleViewDetails(incident.id)}
-                                                    title="Ver detalles"
+                                                    title="Ver detalles completos"
                                                 >
-                                                    👁️
+                                                    👁️ Ver
                                                 </button>
                                                 
                                                 {/* Selector de estado */}
@@ -309,6 +356,153 @@ const IncidentList = () => {
                         Mostrando <strong>{filteredIncidents.length}</strong> de <strong>{incidents.length}</strong> incidentes
                     </p>
                 </div>
+
+                {/* Modal de detalles del incidente */}
+                {showModal && (
+                    <div className="modal-overlay" onClick={closeModal}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            {modalLoading ? (
+                                <div className="modal-loading">Cargando detalles...</div>
+                            ) : selectedIncident ? (
+                                <>
+                                    <div className="modal-header">
+                                        <h2>🚨 Detalles del Incidente</h2>
+                                        <button className="modal-close" onClick={closeModal}>×</button>
+                                    </div>
+
+                                    <div className="modal-body">
+                                        {/* Información General */}
+                                        <div className="detail-section">
+                                            <h3>📋 Información General</h3>
+                                            <div className="detail-grid">
+                                                <div className="detail-item">
+                                                    <label>ID del Incidente:</label>
+                                                    <span>#{selectedIncident.id}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Nombre:</label>
+                                                    <span className="detail-value-large">{selectedIncident.incident_name}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Tipo:</label>
+                                                    <span>{selectedIncident.incident_type}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Severidad:</label>
+                                                    <span>{getSeverityBadge(selectedIncident.severity_level)}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Estado:</label>
+                                                    <span>{getStatusBadge(selectedIncident.status)}</span>
+                                                </div>
+                                                <div className="detail-item full-width">
+                                                    <label>Ubicación:</label>
+                                                    <span className="detail-value-large">{selectedIncident.location}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Fecha de Inicio:</label>
+                                                    <span>{formatDate(selectedIncident.start_date)}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Duración Estimada:</label>
+                                                    <span>{formatText(selectedIncident.estimated_duration)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Estructura de Comando */}
+                                        <div className="detail-section">
+                                            <h3>👥 Estructura de Comando</h3>
+                                            <div className="command-structure">
+                                                <div className="command-item">
+                                                    <div className="command-role">Comandante del Incidente</div>
+                                                    <div className="command-name">{selectedIncident.commander}</div>
+                                                </div>
+                                                <div className="command-item">
+                                                    <div className="command-role">Oficial de Información Pública</div>
+                                                    <div className="command-name">{formatText(selectedIncident.public_information_officer)}</div>
+                                                </div>
+                                                <div className="command-item">
+                                                    <div className="command-role">Oficial de Enlaces</div>
+                                                    <div className="command-name">{formatText(selectedIncident.liaison_officer)}</div>
+                                                </div>
+                                                <div className="command-item">
+                                                    <div className="command-role">Oficial de Seguridad</div>
+                                                    <div className="command-name">{formatText(selectedIncident.safety_officer)}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Descripción y Recursos */}
+                                        <div className="detail-section">
+                                            <h3>📝 Descripción del Incidente</h3>
+                                            <div className="description-box">
+                                                {selectedIncident.description}
+                                            </div>
+                                        </div>
+
+                                        {selectedIncident.resources_needed && (
+                                            <div className="detail-section">
+                                                <h3>🛠️ Recursos Necesarios</h3>
+                                                <div className="resources-box">
+                                                    {selectedIncident.resources_needed}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {selectedIncident.emergency_contacts && (
+                                            <div className="detail-section">
+                                                <h3>📞 Contactos de Emergencia</h3>
+                                                <div className="contacts-box">
+                                                    {selectedIncident.emergency_contacts}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Información del Sistema */}
+                                        <div className="detail-section">
+                                            <h3>⚙️ Información del Sistema</h3>
+                                            <div className="detail-grid">
+                                                <div className="detail-item">
+                                                    <label>Creado por:</label>
+                                                    <span>{selectedIncident.created_by_username || 'Sistema'}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Fecha de creación:</label>
+                                                    <span>{formatDate(selectedIncident.created_at)}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <label>Última actualización:</label>
+                                                    <span>{formatDate(selectedIncident.updated_at)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="modal-footer">
+                                        <button 
+                                            className="btn-close-modal"
+                                            onClick={closeModal}
+                                        >
+                                            Cerrar
+                                        </button>
+                                        <select
+                                            value={selectedIncident.status}
+                                            onChange={(e) => handleStatusChange(selectedIncident.id, e.target.value)}
+                                            className="status-select-modal"
+                                        >
+                                            <option value="activo">Activo</option>
+                                            <option value="suspendido">Suspendido</option>
+                                            <option value="cerrado">Cerrado</option>
+                                        </select>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="modal-error">Error al cargar los detalles del incidente</div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );
