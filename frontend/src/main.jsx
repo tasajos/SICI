@@ -4,6 +4,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx'; 
 import LoginPage from './pages/LoginPage.jsx'; 
 import AdminDashboard from './pages/AdminDashboard.jsx'; 
+import CreateSCI from './pages/admin/CreateSCI.jsx';
+import UserManagement from './pages/admin/UserManagement.jsx';
+//import IncidentList from './pages/admin/IncidentList.jsx'; // NUEVO
+//import EquipmentUnits from './pages/admin/EquipmentUnits.jsx'; // NUEVO
+//import Reports from './pages/admin/Reports.jsx'; // NUEVO
+//import SystemConfig from './pages/admin/SystemConfig.jsx'; // NUEVO
 import VolunteerDashboard from './pages/VolunteerDashboard.jsx'; 
 import StatusDashboard from './pages/StatusDashboard.jsx'; 
 import ProtectedRoute from './components/ProtectedRoute.jsx'; 
@@ -19,6 +25,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 {/* Rutas Protegidas */}
                 <Route element={<ProtectedRoute allowedRoles={['Administrador']} />}>
                     <Route path="/admin/*" element={<AdminDashboard />} /> 
+                    <Route path="/admin/create-sci" element={<CreateSCI />} />
+                     <Route path="/admin/users" element={<UserManagement />} />
+                     {/*<Route path="/admin/incidents" element={<IncidentList />} /> {/* NUEVA 
+                    <Route path="/admin/resources" element={<EquipmentUnits />} /> {/* NUEVA 
+                    <Route path="/admin/reports" element={<Reports />} /> {/* NUEVA *
+                     <Route path="/admin/settings" element={<SystemConfig />} */}
+                    
                 </Route>
                 
                 <Route element={<ProtectedRoute allowedRoles={['Voluntario']} />}>
