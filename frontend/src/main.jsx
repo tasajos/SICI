@@ -6,7 +6,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx'; 
 import CreateSCI from './pages/admin/CreateSCI.jsx';
 import UserManagement from './pages/admin/UserManagement.jsx';
-//import IncidentList from './pages/admin/IncidentList.jsx'; // NUEVO
+import IncidentList from './pages/admin/IncidentList.jsx'; // NUEVO
 //import EquipmentUnits from './pages/admin/EquipmentUnits.jsx'; // NUEVO
 //import Reports from './pages/admin/Reports.jsx'; // NUEVO
 //import SystemConfig from './pages/admin/SystemConfig.jsx'; // NUEVO
@@ -27,8 +27,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     <Route path="/admin/*" element={<AdminDashboard />} /> 
                     <Route path="/admin/create-sci" element={<CreateSCI />} />
                      <Route path="/admin/users" element={<UserManagement />} />
-                     {/*<Route path="/admin/incidents" element={<IncidentList />} /> {/* NUEVA 
-                    <Route path="/admin/resources" element={<EquipmentUnits />} /> {/* NUEVA 
+                     <Route path="/admin/incidents" element={<IncidentList />} /> {/* NUEVA 
+                   {/* <Route path="/admin/resources" element={<EquipmentUnits />} /> {/* NUEVA 
                     <Route path="/admin/reports" element={<Reports />} /> {/* NUEVA *
                      <Route path="/admin/settings" element={<SystemConfig />} */}
                     
