@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import './CreateSCI.css';
 
 const CreateSCI = () => {
     const navigate = useNavigate();
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         incidentName: '',
         incidentType: '',
@@ -12,10 +14,9 @@ const CreateSCI = () => {
         location: '',
         description: '',
         commander: '',
-        publicInformationOfficer: '',  // Cambiado de operationsChief
-        liaisonOfficer: '',            // Cambiado de logisticsChief
-        safetyOfficer: '',             // Cambiado de planningChief
-        // financeChief removido temporalmente
+        publicInformationOfficer: '',
+        liaisonOfficer: '',
+        safetyOfficer: '',
         startDate: '',
         estimatedDuration: '',
         resourcesNeeded: '',
@@ -34,6 +35,33 @@ const CreateSCI = () => {
         'Evacuación Masiva',
         'Otro'
     ];
+
+    // Cargar usuarios al montar el componente
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch('http://localhost:3310/api/users', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Error al cargar usuarios');
+            }
+
+            setUsers(result.data || []);
+        } catch (error) {
+            console.error('Error al cargar usuarios:', error);
+            alert('Error al cargar la lista de usuarios');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -59,7 +87,7 @@ const CreateSCI = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // Importante para enviar la cookie de sesión
+                credentials: 'include',
                 body: JSON.stringify(formData)
             });
 
@@ -79,6 +107,28 @@ const CreateSCI = () => {
         }
     };
 
+    // Función para obtener la información completa del usuario por ID
+    const getUserInfo = (userId) => {
+        if (!userId) return null;
+        const user = users.find(u => u.id === parseInt(userId));
+        return user ? {
+            fullName: user.full_name,
+            role: user.role_name,
+            unit: user.unit_name || 'Sin unidad asignada'
+        } : null;
+    };
+
+    if (loading) {
+        return (
+            <>
+                <Navbar />
+                <div className="create-sci-container">
+                    <div className="loading-spinner">Cargando usuarios...</div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
             <Navbar />
@@ -89,6 +139,9 @@ const CreateSCI = () => {
                     </button>
                     <h1>🆕 Crear Nuevo Sistema de Comando de Incidentes</h1>
                     <p>Complete toda la información requerida para iniciar un nuevo SCI</p>
+                    <div className="admin-notice">
+                        <strong>Modo Administrador:</strong> Tienes acceso completo para crear y gestionar incidentes.
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="sci-form">
@@ -175,54 +228,112 @@ const CreateSCI = () => {
                         <div className="form-grid">
                             <div className="form-group">
                                 <label htmlFor="commander">Comandante del Incidente *</label>
-                                <input
-                                    type="text"
+                                <select
                                     id="commander"
                                     name="commander"
                                     value={formData.commander}
                                     onChange={handleChange}
                                     required
-                                    placeholder="Nombre del comandante"
-                                />
+                                >
+                                    <option value="">Seleccione un comandante</option>
+                                    {users.filter(user => user.is_active).map(user => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.full_name} - {user.role_name} {user.unit_name ? `- ${user.unit_name}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {formData.commander && (
+                                    <div className="selected-user-info">
+                                        <strong>Comandante seleccionado:</strong>
+                                        <div className="user-details">
+                                            <span>👤 {getUserInfo(formData.commander)?.fullName}</span>
+                                            <span>🎯 {getUserInfo(formData.commander)?.role}</span>
+                                            <span>🏢 {getUserInfo(formData.commander)?.unit}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-group">
                                 <label htmlFor="publicInformationOfficer">Oficial de Información Pública</label>
-                                <input
-                                    type="text"
+                                <select
                                     id="publicInformationOfficer"
                                     name="publicInformationOfficer"
                                     value={formData.publicInformationOfficer}
                                     onChange={handleChange}
-                                    placeholder="Nombre del oficial de información pública"
-                                />
+                                >
+                                    <option value="">Seleccione un oficial</option>
+                                    {users.filter(user => user.is_active).map(user => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.full_name} - {user.role_name} {user.unit_name ? `- ${user.unit_name}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {formData.publicInformationOfficer && (
+                                    <div className="selected-user-info">
+                                        <strong>Oficial seleccionado:</strong>
+                                        <div className="user-details">
+                                            <span>👤 {getUserInfo(formData.publicInformationOfficer)?.fullName}</span>
+                                            <span>🎯 {getUserInfo(formData.publicInformationOfficer)?.role}</span>
+                                            <span>🏢 {getUserInfo(formData.publicInformationOfficer)?.unit}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-group">
                                 <label htmlFor="liaisonOfficer">Oficial de Enlaces</label>
-                                <input
-                                    type="text"
+                                <select
                                     id="liaisonOfficer"
                                     name="liaisonOfficer"
                                     value={formData.liaisonOfficer}
                                     onChange={handleChange}
-                                    placeholder="Nombre del oficial de enlaces"
-                                />
+                                >
+                                    <option value="">Seleccione un oficial</option>
+                                    {users.filter(user => user.is_active).map(user => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.full_name} - {user.role_name} {user.unit_name ? `- ${user.unit_name}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {formData.liaisonOfficer && (
+                                    <div className="selected-user-info">
+                                        <strong>Oficial seleccionado:</strong>
+                                        <div className="user-details">
+                                            <span>👤 {getUserInfo(formData.liaisonOfficer)?.fullName}</span>
+                                            <span>🎯 {getUserInfo(formData.liaisonOfficer)?.role}</span>
+                                            <span>🏢 {getUserInfo(formData.liaisonOfficer)?.unit}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-group">
                                 <label htmlFor="safetyOfficer">Oficial de Seguridad</label>
-                                <input
-                                    type="text"
+                                <select
                                     id="safetyOfficer"
                                     name="safetyOfficer"
                                     value={formData.safetyOfficer}
                                     onChange={handleChange}
-                                    placeholder="Nombre del oficial de seguridad"
-                                />
+                                >
+                                    <option value="">Seleccione un oficial</option>
+                                    {users.filter(user => user.is_active).map(user => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.full_name} - {user.role_name} {user.unit_name ? `- ${user.unit_name}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {formData.safetyOfficer && (
+                                    <div className="selected-user-info">
+                                        <strong>Oficial seleccionado:</strong>
+                                        <div className="user-details">
+                                            <span>👤 {getUserInfo(formData.safetyOfficer)?.fullName}</span>
+                                            <span>🎯 {getUserInfo(formData.safetyOfficer)?.role}</span>
+                                            <span>🏢 {getUserInfo(formData.safetyOfficer)?.unit}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-
-                            {/* Jefe de Finanzas removido temporalmente */}
                         </div>
                     </div>
 
