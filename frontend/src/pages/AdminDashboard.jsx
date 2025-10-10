@@ -1,10 +1,71 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        activeIncidents: 0,
+        availableUnits: 0,
+        totalUsers: 0,
+        todayIncidents: 0,
+        loading: true
+    });
+
+    // Cargar estadísticas al montar el componente
+    useEffect(() => {
+        fetchDashboardStats();
+    }, []);
+
+    const fetchDashboardStats = async () => {
+        try {
+            // Hacer múltiples requests en paralelo
+            const [incidentsResponse, usersResponse, unitsResponse] = await Promise.all([
+                fetch('http://localhost:3310/api/incidents', { credentials: 'include' }),
+                fetch('http://localhost:3310/api/users', { credentials: 'include' }),
+                fetch('http://localhost:3310/api/units', { credentials: 'include' })
+            ]);
+
+            const incidentsData = await incidentsResponse.json();
+            const usersData = await usersResponse.json();
+            const unitsData = await unitsResponse.json();
+
+            if (!incidentsResponse.ok || !usersResponse.ok || !unitsResponse.ok) {
+                throw new Error('Error al cargar estadísticas');
+            }
+
+            // Calcular estadísticas
+            const activeIncidents = (incidentsData.data || []).filter(incident => 
+                incident.status === 'activo'
+            ).length;
+
+            const availableUnits = (unitsData.data || []).filter(unit => 
+                unit.status === 'activo'
+            ).length;
+
+            const totalUsers = (usersData.data || []).length;
+
+            // Calcular incidentes de hoy
+            const today = new Date().toISOString().split('T')[0];
+            const todayIncidents = (incidentsData.data || []).filter(incident => {
+                const incidentDate = new Date(incident.created_at).toISOString().split('T')[0];
+                return incidentDate === today;
+            }).length;
+
+            setStats({
+                activeIncidents,
+                availableUnits,
+                totalUsers,
+                todayIncidents,
+                loading: false
+            });
+
+        } catch (error) {
+            console.error('Error al cargar estadísticas:', error);
+            setStats(prev => ({ ...prev, loading: false }));
+        }
+    };
 
     const cards = [
         {
@@ -74,6 +135,13 @@ const AdminDashboard = () => {
                 <div className="dashboard-header">
                     <h1>Panel de Control - Administrador</h1>
                     <p>Gestiona todos los aspectos del Sistema de Comando de Incidentes</p>
+                    <button 
+                        className="refresh-stats-btn"
+                        onClick={fetchDashboardStats}
+                        disabled={stats.loading}
+                    >
+                        {stats.loading ? '🔄 Cargando...' : '🔄 Actualizar Estadísticas'}
+                    </button>
                 </div>
                 
                 <div className="dashboard-cards">
@@ -101,20 +169,77 @@ const AdminDashboard = () => {
                 {/* Estadísticas rápidas */}
                 <div className="dashboard-stats">
                     <div className="stat-card">
-                        <h4>Incidentes Activos</h4>
-                        <span className="stat-number">3</span>
+                        <div className="stat-icon">🚨</div>
+                        <div className="stat-content">
+                            <h4>Incidentes Activos</h4>
+                            {stats.loading ? (
+                                <div className="stat-loading">...</div>
+                            ) : (
+                                <span className="stat-number">{stats.activeIncidents}</span>
+                            )}
+                            <p className="stat-description">En este momento</p>
+                        </div>
                     </div>
+                    
                     <div className="stat-card">
-                        <h4>Equipos Disponibles</h4>
-                        <span className="stat-number">12</span>
+                        <div className="stat-icon">🛠️</div>
+                        <div className="stat-content">
+                            <h4>Equipos Disponibles</h4>
+                            {stats.loading ? (
+                                <div className="stat-loading">...</div>
+                            ) : (
+                                <span className="stat-number">{stats.availableUnits}</span>
+                            )}
+                            <p className="stat-description">Listos para acción</p>
+                        </div>
                     </div>
+                    
                     <div className="stat-card">
-                        <h4>Usuarios Conectados</h4>
-                        <span className="stat-number">8</span>
+                        <div className="stat-icon">👥</div>
+                        <div className="stat-content">
+                            <h4>Usuarios Totales</h4>
+                            {stats.loading ? (
+                                <div className="stat-loading">...</div>
+                            ) : (
+                                <span className="stat-number">{stats.totalUsers}</span>
+                            )}
+                            <p className="stat-description">Registrados en el sistema</p>
+                        </div>
                     </div>
+                    
                     <div className="stat-card">
-                        <h4>SCI Creados Hoy</h4>
-                        <span className="stat-number">2</span>
+                        <div className="stat-icon">📅</div>
+                        <div className="stat-content">
+                            <h4>SCI Creados Hoy</h4>
+                            {stats.loading ? (
+                                <div className="stat-loading">...</div>
+                            ) : (
+                                <span className="stat-number">{stats.todayIncidents}</span>
+                            )}
+                            <p className="stat-description">{new Date().toLocaleDateString('es-ES')}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="dashboard-info">
+                    <div className="info-card">
+                        <h3>📈 Resumen del Sistema</h3>
+                        <div className="info-content">
+                            <p>
+                                El Sistema de Comando de Incidentes (SICI) se encuentra 
+                                <strong> {stats.activeIncidents > 0 ? 'en estado activo' : 'en estado normal'}</strong> 
+                                con {stats.activeIncidents} incidente(s) requiriendo atención.
+                            </p>
+                            <div className="info-stats">
+                                <span className={`status-indicator ${stats.activeIncidents > 0 ? 'active' : 'normal'}`}>
+                                    {stats.activeIncidents > 0 ? '🚨 ACTIVO' : '✅ NORMAL'}
+                                </span>
+                                <span className="last-update">
+                                    Actualizado: {new Date().toLocaleTimeString('es-ES')}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
