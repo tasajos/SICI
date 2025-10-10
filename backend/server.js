@@ -6,6 +6,7 @@ const pool = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const incidentRoutes = require('./routes/incident.routes');
 const userRoutes = require('./routes/user.routes');
+const unitRoutes = require('./routes/unit.routes');
 const app = express();
 
 // --- 1. Configuración de CORS (Debe ir primero para permitir la comunicación) ---
@@ -32,7 +33,8 @@ app.use(session({
 // --- 4. Rutas (Ahora pueden acceder a req.session) ---
 app.use('/api/auth', authRoutes);
 app.use('/api/incidents', incidentRoutes); 
-app.use('/api/users', userRoutes); // NUEVA RUTA
+app.use('/api/users', userRoutes); 
+app.use('/api/units', unitRoutes); // NUEVA RUTA
 
 const PORT = process.env.PORT || 3310;
 
