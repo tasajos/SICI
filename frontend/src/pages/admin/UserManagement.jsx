@@ -6,6 +6,7 @@ import './UserManagement.css';
 const UserManagement = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
+    const [units, setUnits] = useState([]); // NUEVO: Estado para unidades
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -20,30 +21,42 @@ const UserManagement = () => {
         phone: '',
         password: '',
         role: 'Voluntario',
+        unitId: '', // NUEVO CAMPO
         isActive: true,
         notes: ''
     });
 
-    // Cargar usuarios desde la API
+    // Cargar usuarios y unidades desde la API
     useEffect(() => {
-        fetchUsers();
+        fetchData();
     }, []);
 
-    const fetchUsers = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:3310/api/users', {
-                method: 'GET',
-                credentials: 'include'
-            });
+            const [usersResponse, unitsResponse] = await Promise.all([
+                fetch('http://localhost:3310/api/users', {
+                    method: 'GET',
+                    credentials: 'include'
+                }),
+                fetch('http://localhost:3310/api/units', { // NUEVO: Cargar unidades
+                    method: 'GET',
+                    credentials: 'include'
+                })
+            ]);
 
-            const result = await response.json();
+            const usersResult = await usersResponse.json();
+            const unitsResult = await unitsResponse.json();
 
-            if (!response.ok) {
-                throw new Error(result.message || 'Error al cargar usuarios');
+            if (!usersResponse.ok) {
+                throw new Error(usersResult.message || 'Error al cargar usuarios');
+            }
+            if (!unitsResponse.ok) {
+                throw new Error(unitsResult.message || 'Error al cargar unidades');
             }
 
-            setUsers(result.data || []);
+            setUsers(usersResult.data || []);
+            setUnits(unitsResult.data || []); // NUEVO: Guardar unidades
         } catch (error) {
             console.error('Error:', error);
             setError(error.message);
@@ -71,6 +84,7 @@ const UserManagement = () => {
             phone: '',
             password: '',
             role: 'Voluntario',
+            unitId: '', // NUEVO: Inicializar vacío
             isActive: true,
             notes: ''
         });
@@ -87,6 +101,7 @@ const UserManagement = () => {
             phone: user.phone || '',
             password: '', // No mostramos la contraseña por seguridad
             role: user.role_name,
+            unitId: user.unit_id || '', // NUEVO: Cargar unidad del usuario
             isActive: user.is_active,
             notes: user.notes || ''
         });
@@ -120,7 +135,7 @@ const UserManagement = () => {
             }
 
             // Actualizar la lista de usuarios
-            await fetchUsers();
+            await fetchData();
             
             setShowModal(false);
             alert(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
@@ -146,7 +161,7 @@ const UserManagement = () => {
                 }
 
                 // Actualizar la lista de usuarios
-                await fetchUsers();
+                await fetchData();
                 alert('Usuario desactivado exitosamente');
                 
             } catch (error) {
@@ -174,7 +189,7 @@ const UserManagement = () => {
             }
 
             // Actualizar la lista de usuarios
-            await fetchUsers();
+            await fetchData();
             alert(`Usuario ${!currentStatus ? 'activado' : 'desactivado'} exitosamente`);
             
         } catch (error) {
@@ -188,7 +203,8 @@ const UserManagement = () => {
         user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        user.role_name.toLowerCase().includes(searchTerm.toLowerCase())
+        user.role_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.unit_name && user.unit_name.toLowerCase().includes(searchTerm.toLowerCase())) // NUEVO: Buscar por unidad
     );
 
     const formatDate = (dateString) => {
@@ -217,7 +233,7 @@ const UserManagement = () => {
                         ← Volver al Dashboard
                     </button>
                     <h1>👤 Gestión de Usuarios</h1>
-                    <p>Administra usuarios, roles y permisos del sistema</p>
+                    <p>Administra usuarios, roles, permisos y asignación de unidades</p>
                 </div>
 
                 {/* Barra de herramientas */}
@@ -255,6 +271,10 @@ const UserManagement = () => {
                         <span className="stat-number">{users.filter(u => u.role_name === 'Voluntario').length}</span>
                         <span className="stat-label">Voluntarios</span>
                     </div>
+                    <div className="stat-card">
+                        <span className="stat-number">{users.filter(u => u.unit_id).length}</span>
+                        <span className="stat-label">Con Unidad</span>
+                    </div>
                 </div>
 
                 {/* Tabla de usuarios */}
@@ -270,6 +290,7 @@ const UserManagement = () => {
                             <tr>
                                 <th>Usuario</th>
                                 <th>Rol</th>
+                                <th>Unidad</th>
                                 <th>Estado</th>
                                 <th>Teléfono</th>
                                 <th>Último Acceso</th>
@@ -297,6 +318,15 @@ const UserManagement = () => {
                                         <span className={`role-badge role-${user.role_name.toLowerCase()}`}>
                                             {user.role_name}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {user.unit_name ? (
+                                            <span className="unit-badge">
+                                                {user.unit_name}
+                                            </span>
+                                        ) : (
+                                            <span className="no-unit">Sin unidad</span>
+                                        )}
                                     </td>
                                     <td>
                                         <span 
@@ -429,6 +459,33 @@ const UserManagement = () => {
                                                 <option key={role} value={role}>{role}</option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    {/* NUEVO: Campo de unidad */}
+                                    <div className="form-group">
+                                        <label>Unidad Asignada</label>
+                                        <select
+                                            name="unitId"
+                                            value={formData.unitId}
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="">Seleccione una unidad (opcional)</option>
+                                            {units
+                                                .filter(unit => unit.status === 'activo')
+                                                .map(unit => (
+                                                    <option key={unit.id} value={unit.id}>
+                                                        {unit.name} - {unit.unit_type_name}
+                                                    </option>
+                                                ))
+                                            }
+                                        </select>
+                                        {formData.unitId && (
+                                            <div className="selected-unit">
+                                                Unidad seleccionada: {
+                                                    units.find(u => u.id === parseInt(formData.unitId))?.name
+                                                }
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="form-group">

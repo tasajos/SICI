@@ -663,3 +663,37 @@
         padding: 1rem;
     }
 }
+
+/* Estilos para la información de usuarios */
+.user-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-detail-info strong {
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.user-detail-info span {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.commander-cell {
+    max-width: 250px;
+    min-width: 200px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.commander-cell:hover {
+    background-color: #f8f9fa;
+}
+
+.command-structure .command-name {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+}

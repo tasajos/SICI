@@ -99,15 +99,99 @@ router.get('/', async (req, res) => {
         const [incidents] = await pool.execute(`
             SELECT 
                 i.*,
-                u.username as created_by_username
+                creator.username as created_by_username,
+                -- Información del comandante
+                cmd.id as commander_id,
+                cmd.full_name as commander_name,
+                cmd_role.name as commander_role,
+                cmd_unit.name as commander_unit,
+                -- Información del oficial de información pública
+                pio.id as pio_id,
+                pio.full_name as pio_name,
+                pio_role.name as pio_role,
+                pio_unit.name as pio_unit,
+                -- Información del oficial de enlaces
+                lio.id as lio_id,
+                lio.full_name as lio_name,
+                lio_role.name as lio_role,
+                lio_unit.name as lio_unit,
+                -- Información del oficial de seguridad
+                so.id as so_id,
+                so.full_name as so_name,
+                so_role.name as so_role,
+                so_unit.name as so_unit
             FROM incidents i
-            LEFT JOIN users u ON i.created_by = u.id
+            LEFT JOIN users creator ON i.created_by = creator.id
+            -- JOINs para el comandante
+            LEFT JOIN users cmd ON i.commander = cmd.id
+            LEFT JOIN roles cmd_role ON cmd.role_id = cmd_role.id
+            LEFT JOIN units cmd_unit ON cmd.unit_id = cmd_unit.id
+            -- JOINs para el oficial de información pública
+            LEFT JOIN users pio ON i.public_information_officer = pio.id
+            LEFT JOIN roles pio_role ON pio.role_id = pio_role.id
+            LEFT JOIN units pio_unit ON pio.unit_id = pio_unit.id
+            -- JOINs para el oficial de enlaces
+            LEFT JOIN users lio ON i.liaison_officer = lio.id
+            LEFT JOIN roles lio_role ON lio.role_id = lio_role.id
+            LEFT JOIN units lio_unit ON lio.unit_id = lio_unit.id
+            -- JOINs para el oficial de seguridad
+            LEFT JOIN users so ON i.safety_officer = so.id
+            LEFT JOIN roles so_role ON so.role_id = so_role.id
+            LEFT JOIN units so_unit ON so.unit_id = so_unit.id
             ORDER BY i.created_at DESC
         `);
 
+        // Transformar los datos para el frontend
+        const transformedIncidents = incidents.map(incident => ({
+            ...incident,
+            // Información formateada del comandante
+            commander_info: incident.commander_name ? {
+                id: incident.commander_id,
+                name: incident.commander_name,
+                role: incident.commander_role,
+                unit: incident.commander_unit
+            } : null,
+            commander_display: incident.commander_name ? 
+                `${incident.commander_name} - ${incident.commander_role}${incident.commander_unit ? ` - ${incident.commander_unit}` : ''}` 
+                : 'No asignado',
+            
+            // Información formateada del oficial de información pública
+            pio_info: incident.pio_name ? {
+                id: incident.pio_id,
+                name: incident.pio_name,
+                role: incident.pio_role,
+                unit: incident.pio_unit
+            } : null,
+            pio_display: incident.pio_name ? 
+                `${incident.pio_name} - ${incident.pio_role}${incident.pio_unit ? ` - ${incident.pio_unit}` : ''}` 
+                : 'No asignado',
+            
+            // Información formateada del oficial de enlaces
+            lio_info: incident.lio_name ? {
+                id: incident.lio_id,
+                name: incident.lio_name,
+                role: incident.lio_role,
+                unit: incident.lio_unit
+            } : null,
+            lio_display: incident.lio_name ? 
+                `${incident.lio_name} - ${incident.lio_role}${incident.lio_unit ? ` - ${incident.lio_unit}` : ''}` 
+                : 'No asignado',
+            
+            // Información formateada del oficial de seguridad
+            so_info: incident.so_name ? {
+                id: incident.so_id,
+                name: incident.so_name,
+                role: incident.so_role,
+                unit: incident.so_unit
+            } : null,
+            so_display: incident.so_name ? 
+                `${incident.so_name} - ${incident.so_role}${incident.so_unit ? ` - ${incident.so_unit}` : ''}` 
+                : 'No asignado'
+        }));
+
         res.json({
             message: 'Incidentes obtenidos exitosamente',
-            data: incidents
+            data: transformedIncidents
         });
 
     } catch (error) {
@@ -131,9 +215,45 @@ router.get('/:id', async (req, res) => {
         const [incidents] = await pool.execute(`
             SELECT 
                 i.*,
-                u.username as created_by_username
+                creator.username as created_by_username,
+                -- Información del comandante
+                cmd.id as commander_id,
+                cmd.full_name as commander_name,
+                cmd_role.name as commander_role,
+                cmd_unit.name as commander_unit,
+                -- Información del oficial de información pública
+                pio.id as pio_id,
+                pio.full_name as pio_name,
+                pio_role.name as pio_role,
+                pio_unit.name as pio_unit,
+                -- Información del oficial de enlaces
+                lio.id as lio_id,
+                lio.full_name as lio_name,
+                lio_role.name as lio_role,
+                lio_unit.name as lio_unit,
+                -- Información del oficial de seguridad
+                so.id as so_id,
+                so.full_name as so_name,
+                so_role.name as so_role,
+                so_unit.name as so_unit
             FROM incidents i
-            LEFT JOIN users u ON i.created_by = u.id
+            LEFT JOIN users creator ON i.created_by = creator.id
+            -- JOINs para el comandante
+            LEFT JOIN users cmd ON i.commander = cmd.id
+            LEFT JOIN roles cmd_role ON cmd.role_id = cmd_role.id
+            LEFT JOIN units cmd_unit ON cmd.unit_id = cmd_unit.id
+            -- JOINs para el oficial de información pública
+            LEFT JOIN users pio ON i.public_information_officer = pio.id
+            LEFT JOIN roles pio_role ON pio.role_id = pio_role.id
+            LEFT JOIN units pio_unit ON pio.unit_id = pio_unit.id
+            -- JOINs para el oficial de enlaces
+            LEFT JOIN users lio ON i.liaison_officer = lio.id
+            LEFT JOIN roles lio_role ON lio.role_id = lio_role.id
+            LEFT JOIN units lio_unit ON lio.unit_id = lio_unit.id
+            -- JOINs para el oficial de seguridad
+            LEFT JOIN users so ON i.safety_officer = so.id
+            LEFT JOIN roles so_role ON so.role_id = so_role.id
+            LEFT JOIN units so_unit ON so.unit_id = so_unit.id
             WHERE i.id = ?
         `, [incidentId]);
 
@@ -141,9 +261,40 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ message: 'Incidente no encontrado.' });
         }
 
+        const incident = incidents[0];
+
+        // Transformar los datos
+        const transformedIncident = {
+            ...incident,
+            commander_info: incident.commander_name ? {
+                id: incident.commander_id,
+                name: incident.commander_name,
+                role: incident.commander_role,
+                unit: incident.commander_unit
+            } : null,
+            pio_info: incident.pio_name ? {
+                id: incident.pio_id,
+                name: incident.pio_name,
+                role: incident.pio_role,
+                unit: incident.pio_unit
+            } : null,
+            lio_info: incident.lio_name ? {
+                id: incident.lio_id,
+                name: incident.lio_name,
+                role: incident.lio_role,
+                unit: incident.lio_unit
+            } : null,
+            so_info: incident.so_name ? {
+                id: incident.so_id,
+                name: incident.so_name,
+                role: incident.so_role,
+                unit: incident.so_unit
+            } : null
+        };
+
         res.json({
             message: 'Incidente obtenido exitosamente',
-            data: incidents[0]
+            data: transformedIncident
         });
 
     } catch (error) {

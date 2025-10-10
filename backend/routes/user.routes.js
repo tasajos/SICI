@@ -14,9 +14,13 @@ router.get('/', async (req, res) => {
             SELECT 
                 u.*,
                 r.name as role_name,
+                ut.name as unit_name,
+                ut_types.name as unit_type_name,  -- Nombre del tipo de unidad
                 creator.username as created_by_username
             FROM users u
             JOIN roles r ON u.role_id = r.id
+            LEFT JOIN units ut ON u.unit_id = ut.id
+            LEFT JOIN unit_types ut_types ON ut.unit_type_id = ut_types.id  -- JOIN con unit_types
             LEFT JOIN users creator ON u.created_by = creator.id
             ORDER BY u.created_at DESC
         `);
@@ -48,6 +52,7 @@ router.post('/create', async (req, res) => {
         phone,
         password,
         role,
+        unitId, // NUEVO CAMPO
         isActive = true,
         notes
     } = req.body;
@@ -92,15 +97,28 @@ router.post('/create', async (req, res) => {
 
         const roleId = roles[0].id;
 
+        // Verificar si la unidad existe (si se proporcionó)
+        if (unitId) {
+            const [units] = await pool.execute(
+                'SELECT id FROM units WHERE id = ?',
+                [unitId]
+            );
+            if (units.length === 0) {
+                return res.status(400).json({ 
+                    message: 'Unidad no válida.' 
+                });
+            }
+        }
+
         // SIN HASH - Guardamos la contraseña en texto plano
-        const passwordHash = password; // Directamente el texto plano
+        const passwordHash = password;
 
         // Insertar nuevo usuario
         const [result] = await pool.execute(
             `INSERT INTO users (
                 username, password_hash, full_name, email, phone, 
-                role_id, is_active, created_by, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                role_id, unit_id, is_active, created_by, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 username,
                 passwordHash,
@@ -108,23 +126,28 @@ router.post('/create', async (req, res) => {
                 email || null,
                 phone || null,
                 roleId,
+                unitId || null, // NUEVO CAMPO
                 isActive,
-                req.session.user.id, // Usuario que crea
+                req.session.user.id,
                 notes || null
             ]
         );
 
-        // Obtener el usuario creado con información del rol
+        // Obtener el usuario creado con información completa
         const [newUsers] = await pool.execute(`
             SELECT 
-                u.*,
-                r.name as role_name,
-                creator.username as created_by_username
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            LEFT JOIN users creator ON u.created_by = creator.id
-            WHERE u.id = ?
-        `, [result.insertId]);
+        u.*,
+        r.name as role_name,
+        ut.name as unit_name,
+        ut_types.name as unit_type_name,
+        creator.username as created_by_username
+    FROM users u
+    JOIN roles r ON u.role_id = r.id
+    LEFT JOIN units ut ON u.unit_id = ut.id
+    LEFT JOIN unit_types ut_types ON ut.unit_type_id = ut_types.id
+    LEFT JOIN users creator ON u.created_by = creator.id
+    WHERE u.id = ?
+`, [result.insertId]);
 
         res.status(201).json({
             message: 'Usuario creado exitosamente',
@@ -140,7 +163,7 @@ router.post('/create', async (req, res) => {
     }
 });
 
-// PUT /api/users/:id - Actualizar usuario
+
 // PUT /api/users/:id - Actualizar usuario (SIN HASH)
 router.put('/:id', async (req, res) => {
     if (!req.session.user) {
@@ -155,6 +178,7 @@ router.put('/:id', async (req, res) => {
         phone,
         password,
         role,
+        unitId, // NUEVO CAMPO
         isActive,
         notes
     } = req.body;
@@ -198,6 +222,19 @@ router.put('/:id', async (req, res) => {
             roleId = roles[0].id;
         }
 
+        // Verificar si la unidad existe (si se proporcionó)
+        if (unitId) {
+            const [units] = await pool.execute(
+                'SELECT id FROM units WHERE id = ?',
+                [unitId]
+            );
+            if (units.length === 0) {
+                return res.status(400).json({ 
+                    message: 'Unidad no válida.' 
+                });
+            }
+        }
+
         // Construir la consulta de actualización dinámicamente
         let updateFields = [];
         let updateValues = [];
@@ -222,6 +259,10 @@ router.put('/:id', async (req, res) => {
             updateFields.push('role_id = ?');
             updateValues.push(roleId);
         }
+        if (unitId !== undefined) {
+            updateFields.push('unit_id = ?');
+            updateValues.push(unitId);
+        }
         if (isActive !== undefined) {
             updateFields.push('is_active = ?');
             updateValues.push(isActive);
@@ -238,7 +279,6 @@ router.put('/:id', async (req, res) => {
                     message: 'La contraseña debe tener al menos 6 caracteres.' 
                 });
             }
-            // SIN HASH - Guardamos directamente en texto plano
             updateFields.push('password_hash = ?');
             updateValues.push(password);
         }
@@ -263,14 +303,18 @@ router.put('/:id', async (req, res) => {
         // Obtener el usuario actualizado
         const [updatedUsers] = await pool.execute(`
             SELECT 
-                u.*,
-                r.name as role_name,
-                creator.username as created_by_username
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            LEFT JOIN users creator ON u.created_by = creator.id
-            WHERE u.id = ?
-        `, [userId]);
+        u.*,
+        r.name as role_name,
+        ut.name as unit_name,
+        ut_types.name as unit_type_name,
+        creator.username as created_by_username
+    FROM users u
+    JOIN roles r ON u.role_id = r.id
+    LEFT JOIN units ut ON u.unit_id = ut.id
+    LEFT JOIN unit_types ut_types ON ut.unit_type_id = ut_types.id
+    LEFT JOIN users creator ON u.created_by = creator.id
+    WHERE u.id = ?
+`, [userId]);
 
         res.json({
             message: 'Usuario actualizado exitosamente',

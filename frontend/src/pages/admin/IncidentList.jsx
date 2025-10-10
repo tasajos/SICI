@@ -118,16 +118,16 @@ const IncidentList = () => {
 
     // Filtrar incidentes
     const filteredIncidents = incidents.filter(incident => {
-        const matchesSearch = 
-            incident.incident_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            incident.incident_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            incident.commander.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+        incident.incident_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        incident.incident_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (incident.commander_display && incident.commander_display.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        const matchesStatus = statusFilter === 'todos' || incident.status === statusFilter;
+    const matchesStatus = statusFilter === 'todos' || incident.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
-    });
+    return matchesSearch && matchesStatus;
+});
 
     const getStatusBadge = (status) => {
         const statusConfig = {
@@ -305,47 +305,49 @@ const IncidentList = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredIncidents.map(incident => (
-                                    <tr key={incident.id} className="incident-row">
-                                        <td className="incident-id">#{incident.id}</td>
-                                        <td className="incident-name">
-                                            <strong>{incident.incident_name}</strong>
-                                            <div className="incident-meta">
-                                                Creado por: {incident.created_by_username || 'Sistema'}
-                                            </div>
-                                        </td>
-                                        <td>{incident.incident_type}</td>
-                                        <td>{getSeverityBadge(incident.severity_level)}</td>
-                                        <td>{incident.commander}</td>
-                                        <td className="location-cell">{incident.location}</td>
-                                        <td>{formatDate(incident.start_date)}</td>
-                                        <td>{getStatusBadge(incident.status)}</td>
-                                        <td>
-                                            <div className="action-buttons-cell">
-                                                <button 
-                                                    className="btn-view"
-                                                    onClick={() => handleViewDetails(incident.id)}
-                                                    title="Ver detalles completos"
-                                                >
-                                                    👁️ Ver
-                                                </button>
-                                                
-                                                {/* Selector de estado */}
-                                                <select
-                                                    value={incident.status}
-                                                    onChange={(e) => handleStatusChange(incident.id, e.target.value)}
-                                                    className="status-select"
-                                                    title="Cambiar estado"
-                                                >
-                                                    <option value="activo">Activo</option>
-                                                    <option value="suspendido">Suspendido</option>
-                                                    <option value="cerrado">Cerrado</option>
-                                                </select>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
+    {filteredIncidents.map(incident => (
+        <tr key={incident.id} className="incident-row">
+            <td className="incident-id">#{incident.id}</td>
+            <td className="incident-name">
+                <strong>{incident.incident_name}</strong>
+                <div className="incident-meta">
+                    Creado por: {incident.created_by_username || 'Sistema'}
+                </div>
+            </td>
+            <td>{incident.incident_type}</td>
+            <td>{getSeverityBadge(incident.severity_level)}</td>
+            <td className="commander-cell">
+                {incident.commander_display || 'No asignado'}
+            </td>
+            <td className="location-cell">{incident.location}</td>
+            <td>{formatDate(incident.start_date)}</td>
+            <td>{getStatusBadge(incident.status)}</td>
+            <td>
+                <div className="action-buttons-cell">
+                    <button 
+                        className="btn-view"
+                        onClick={() => handleViewDetails(incident.id)}
+                        title="Ver detalles completos"
+                    >
+                        👁️ Ver
+                    </button>
+                    
+                    {/* Selector de estado */}
+                    <select
+                        value={incident.status}
+                        onChange={(e) => handleStatusChange(incident.id, e.target.value)}
+                        className="status-select"
+                        title="Cambiar estado"
+                    >
+                        <option value="activo">Activo</option>
+                        <option value="suspendido">Suspendido</option>
+                        <option value="cerrado">Cerrado</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+    ))}
+</tbody>
                         </table>
                     )}
                 </div>
@@ -412,26 +414,66 @@ const IncidentList = () => {
 
                                         {/* Estructura de Comando */}
                                         <div className="detail-section">
-                                            <h3>👥 Estructura de Comando</h3>
-                                            <div className="command-structure">
-                                                <div className="command-item">
-                                                    <div className="command-role">Comandante del Incidente</div>
-                                                    <div className="command-name">{selectedIncident.commander}</div>
-                                                </div>
-                                                <div className="command-item">
-                                                    <div className="command-role">Oficial de Información Pública</div>
-                                                    <div className="command-name">{formatText(selectedIncident.public_information_officer)}</div>
-                                                </div>
-                                                <div className="command-item">
-                                                    <div className="command-role">Oficial de Enlaces</div>
-                                                    <div className="command-name">{formatText(selectedIncident.liaison_officer)}</div>
-                                                </div>
-                                                <div className="command-item">
-                                                    <div className="command-role">Oficial de Seguridad</div>
-                                                    <div className="command-name">{formatText(selectedIncident.safety_officer)}</div>
-                                                </div>
-                                            </div>
-                                        </div>
+    <h3>👥 Estructura de Comando</h3>
+    <div className="command-structure">
+        <div className="command-item">
+            <div className="command-role">Comandante del Incidente</div>
+            <div className="command-name">
+                {selectedIncident.commander_info ? (
+                    <div className="user-detail-info">
+                        <strong>{selectedIncident.commander_info.name}</strong>
+                        <span>Rol: {selectedIncident.commander_info.role}</span>
+                        <span>Unidad: {selectedIncident.commander_info.unit || 'Sin unidad'}</span>
+                    </div>
+                ) : (
+                    'No asignado'
+                )}
+            </div>
+        </div>
+        <div className="command-item">
+            <div className="command-role">Oficial de Información Pública</div>
+            <div className="command-name">
+                {selectedIncident.pio_info ? (
+                    <div className="user-detail-info">
+                        <strong>{selectedIncident.pio_info.name}</strong>
+                        <span>Rol: {selectedIncident.pio_info.role}</span>
+                        <span>Unidad: {selectedIncident.pio_info.unit || 'Sin unidad'}</span>
+                    </div>
+                ) : (
+                    'No asignado'
+                )}
+            </div>
+        </div>
+        <div className="command-item">
+            <div className="command-role">Oficial de Enlaces</div>
+            <div className="command-name">
+                {selectedIncident.lio_info ? (
+                    <div className="user-detail-info">
+                        <strong>{selectedIncident.lio_info.name}</strong>
+                        <span>Rol: {selectedIncident.lio_info.role}</span>
+                        <span>Unidad: {selectedIncident.lio_info.unit || 'Sin unidad'}</span>
+                    </div>
+                ) : (
+                    'No asignado'
+                )}
+            </div>
+        </div>
+        <div className="command-item">
+            <div className="command-role">Oficial de Seguridad</div>
+            <div className="command-name">
+                {selectedIncident.so_info ? (
+                    <div className="user-detail-info">
+                        <strong>{selectedIncident.so_info.name}</strong>
+                        <span>Rol: {selectedIncident.so_info.role}</span>
+                        <span>Unidad: {selectedIncident.so_info.unit || 'Sin unidad'}</span>
+                    </div>
+                ) : (
+                    'No asignado'
+                )}
+            </div>
+        </div>
+    </div>
+</div>
 
                                         {/* Descripción y Recursos */}
                                         <div className="detail-section">
