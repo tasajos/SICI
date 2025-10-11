@@ -9,6 +9,7 @@ const SystemConfiguration = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState('forms'); // 'forms' o 'roles'
 
     // Estado para los formularios ICS
     const [forms, setForms] = useState({
@@ -178,6 +179,18 @@ const SystemConfiguration = () => {
         }
     ];
 
+    // Definición de roles y sus formularios asignados
+    const rolesConfiguration = {
+        'Comandante de Incidente': ['201', '202', '203', '207', '208', '217', '220'],
+        'Oficial de Seguridad': ['206', '212'],
+        'Oficial de Información Pública': ['201', '208', '213', '217'],
+        'Oficial de Enlaces': ['203', '213'],
+        'Jefe de Planificación': ['201', '202', '203', '204', '207', '208', '209', '214', '217', '220'],
+        'Jefe de Operaciones': ['204', '205', '206', '214', '215', '218'],
+        'Jefe de Logística': ['205', '211', '213', '215', '216'],
+        'Jefe de Administración y Finanzas': ['216', '218', '219', '221']
+    };
+
     // Cargar configuración al montar el componente
     useEffect(() => {
         fetchConfiguration();
@@ -291,6 +304,21 @@ const SystemConfiguration = () => {
         }
     };
 
+    // Función para obtener formularios por rol
+    const getFormsByRole = (role) => {
+        const formNumbers = rolesConfiguration[role];
+        return icsForms.filter(form => 
+            formNumbers.includes(form.number.replace('ICS-', ''))
+        );
+    };
+
+    // Función para verificar si un formulario está habilitado para un rol
+    const isFormEnabledForRole = (form, role) => {
+        const formNumbers = rolesConfiguration[role];
+        const formNumber = form.number.replace('ICS-', '');
+        return formNumbers.includes(formNumber) && forms[form.id];
+    };
+
     // Agrupar formularios por categoría
     const formsByCategory = icsForms.reduce((acc, form) => {
         if (!acc[form.category]) {
@@ -323,6 +351,22 @@ const SystemConfiguration = () => {
                     </button>
                     <h1>⚙️ Configuración del Sistema</h1>
                     <p>Gestiona los formularios ICS disponibles para comandantes y oficiales</p>
+                </div>
+
+                {/* Navegación por pestañas */}
+                <div className="tabs-navigation">
+                    <button 
+                        className={`tab-button ${activeTab === 'forms' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('forms')}
+                    >
+                        📋 Configurar Formularios
+                    </button>
+                    <button 
+                        className={`tab-button ${activeTab === 'roles' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('roles')}
+                    >
+                        👥 Vista por Roles
+                    </button>
                 </div>
 
                 {/* Mensajes */}
@@ -358,83 +402,147 @@ const SystemConfiguration = () => {
                     </div>
                 </div>
 
-                {/* Controles globales */}
-                <div className="global-controls">
-                    <h3>Controles Globales</h3>
-                    <div className="control-buttons">
-                        <button 
-                            className="btn-select-all"
-                            onClick={() => handleSelectAll()}
-                        >
-                            ✅ Seleccionar Todos
-                        </button>
-                        <button 
-                            className="btn-deselect-all"
-                            onClick={() => handleDeselectAll()}
-                        >
-                            ❌ Deseleccionar Todos
-                        </button>
-                        <button 
-                            className="btn-save"
-                            onClick={handleSaveConfiguration}
-                            disabled={saving}
-                        >
-                            {saving ? '💾 Guardando...' : '💾 Guardar Configuración'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Formularios por categoría */}
-                <div className="forms-configuration">
-                    {categories.map(category => (
-                        <div key={category} className="category-section">
-                            <div className="category-header">
-                                <h3>{category}</h3>
-                                <div className="category-controls">
-                                    <button 
-                                        className="btn-category-select"
-                                        onClick={() => handleSelectAll(category)}
-                                    >
-                                        ✅ Todos
-                                    </button>
-                                    <button 
-                                        className="btn-category-deselect"
-                                        onClick={() => handleDeselectAll(category)}
-                                    >
-                                        ❌ Ninguno
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div className="forms-grid">
-                                {formsByCategory[category].map(form => (
-                                    <div key={form.id} className="form-card">
-                                        <div className="form-header">
-                                            <div className="form-number">{form.number}</div>
-                                            <label className="toggle-switch">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={forms[form.id]}
-                                                    onChange={() => handleFormToggle(form.id)}
-                                                />
-                                                <span className="slider"></span>
-                                            </label>
-                                        </div>
-                                        <div className="form-content">
-                                            <h4 className="form-name">{form.name}</h4>
-                                            <p className="form-description">{form.description}</p>
-                                        </div>
-                                        <div className="form-status">
-                                            <span className={`status ${forms[form.id] ? 'enabled' : 'disabled'}`}>
-                                                {forms[form.id] ? '🟢 Habilitado' : '🔴 Deshabilitado'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
+                {/* Pestaña de Configuración de Formularios */}
+                {activeTab === 'forms' && (
+                    <>
+                        {/* Controles globales */}
+                        <div className="global-controls">
+                            <h3>Controles Globales</h3>
+                            <div className="control-buttons">
+                                <button 
+                                    className="btn-select-all"
+                                    onClick={() => handleSelectAll()}
+                                >
+                                    ✅ Seleccionar Todos
+                                </button>
+                                <button 
+                                    className="btn-deselect-all"
+                                    onClick={() => handleDeselectAll()}
+                                >
+                                    ❌ Deseleccionar Todos
+                                </button>
+                                <button 
+                                    className="btn-save"
+                                    onClick={handleSaveConfiguration}
+                                    disabled={saving}
+                                >
+                                    {saving ? '💾 Guardando...' : '💾 Guardar Configuración'}
+                                </button>
                             </div>
                         </div>
-                    ))}
-                </div>
+
+                        {/* Formularios por categoría */}
+                        <div className="forms-configuration">
+                            {categories.map(category => (
+                                <div key={category} className="category-section">
+                                    <div className="category-header">
+                                        <h3>{category}</h3>
+                                        <div className="category-controls">
+                                            <button 
+                                                className="btn-category-select"
+                                                onClick={() => handleSelectAll(category)}
+                                            >
+                                                ✅ Todos
+                                            </button>
+                                            <button 
+                                                className="btn-category-deselect"
+                                                onClick={() => handleDeselectAll(category)}
+                                            >
+                                                ❌ Ninguno
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="forms-grid">
+                                        {formsByCategory[category].map(form => (
+                                            <div key={form.id} className="form-card">
+                                                <div className="form-header">
+                                                    <div className="form-number">{form.number}</div>
+                                                    <label className="toggle-switch">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={forms[form.id]}
+                                                            onChange={() => handleFormToggle(form.id)}
+                                                        />
+                                                        <span className="slider"></span>
+                                                    </label>
+                                                </div>
+                                                <div className="form-content">
+                                                    <h4 className="form-name">{form.name}</h4>
+                                                    <p className="form-description">{form.description}</p>
+                                                </div>
+                                                <div className="form-status">
+                                                    <span className={`status ${forms[form.id] ? 'enabled' : 'disabled'}`}>
+                                                        {forms[form.id] ? '🟢 Habilitado' : '🔴 Deshabilitado'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {/* Pestaña de Vista por Roles */}
+                {activeTab === 'roles' && (
+                    <div className="roles-configuration">
+                        <div className="roles-grid">
+                            {Object.entries(rolesConfiguration).map(([role, formNumbers]) => {
+                                const roleForms = getFormsByRole(role);
+                                const enabledForms = roleForms.filter(form => forms[form.id]);
+                                
+                                return (
+                                    <div key={role} className="role-card">
+                                        <div className="role-header">
+                                            <h3>{role}</h3>
+                                            <div className="role-stats">
+                                                <span className="forms-count">
+                                                    {enabledForms.length}/{roleForms.length} formularios
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="role-forms">
+                                            <h4>Formularios Asignados:</h4>
+                                            <div className="assigned-forms">
+                                                {roleForms.map(form => (
+                                                    <div 
+                                                        key={form.id} 
+                                                        className={`assigned-form ${forms[form.id] ? 'enabled' : 'disabled'}`}
+                                                    >
+                                                        <span className="form-number-small">{form.number}</span>
+                                                        <span className="form-name-small">{form.name}</span>
+                                                        <span className={`form-status-indicator ${forms[form.id] ? 'enabled' : 'disabled'}`}>
+                                                            {forms[form.id] ? '✅' : '❌'}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="role-summary">
+                                            <div className="summary-info">
+                                                <strong>Disponibles: {enabledForms.length}</strong>
+                                                <span>de {roleForms.length} formularios</span>
+                                            </div>
+                                            <div className="completion-rate">
+                                                <div 
+                                                    className="completion-bar"
+                                                    style={{ 
+                                                        width: `${(enabledForms.length / roleForms.length) * 100}%` 
+                                                    }}
+                                                ></div>
+                                                <span>{Math.round((enabledForms.length / roleForms.length) * 100)}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Botón de guardar fijo */}
                 <div className="fixed-save-button">

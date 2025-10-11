@@ -492,3 +492,235 @@ input:checked + .slider:before {
         padding: 1rem;
     }
 }
+
+/* Navegación por pestañas */
+.tabs-navigation {
+    display: flex;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 1rem 2rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+    background: #3498db;
+    color: white;
+    border-bottom: 3px solid #2980b9;
+}
+
+.tab-button:not(.active):hover {
+    background: #f8f9fa;
+    border-bottom: 3px solid #bdc3c7;
+}
+
+/* Vista por Roles */
+.roles-configuration {
+    margin-bottom: 2rem;
+}
+
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.role-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.role-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.role-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.role-stats {
+    text-align: right;
+}
+
+.forms-count {
+    background: #3498db;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.role-forms {
+    margin-bottom: 1rem;
+}
+
+.role-forms h4 {
+    color: #7f8c8d;
+    margin: 0 0 0.8rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.assigned-forms {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.assigned-form {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.assigned-form.enabled {
+    background: #f8f9fa;
+    border-left: 3px solid #27ae60;
+}
+
+.assigned-form.disabled {
+    background: #fefefe;
+    border-left: 3px solid #e74c3c;
+    opacity: 0.7;
+}
+
+.form-number-small {
+    background: #34495e;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 50px;
+    text-align: center;
+    margin-right: 0.8rem;
+}
+
+.form-name-small {
+    flex: 1;
+    font-size: 0.8rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.form-status-indicator {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.role-summary {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.summary-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.summary-info strong {
+    color: #2c3e50;
+}
+
+.summary-info span {
+    color: #7f8c8d;
+}
+
+.completion-rate {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.completion-bar {
+    flex: 1;
+    height: 6px;
+    background: #ecf0f1;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.completion-bar {
+    background: #27ae60;
+    transition: width 0.3s ease;
+}
+
+.completion-rate span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Responsive para roles */
+@media (max-width: 768px) {
+    .tabs-navigation {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .roles-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .role-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .role-stats {
+        text-align: left;
+    }
+    
+    .assigned-form {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .form-number-small {
+        margin-right: 0;
+    }
+}
