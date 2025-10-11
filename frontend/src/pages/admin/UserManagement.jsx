@@ -93,58 +93,64 @@ const UserManagement = () => {
     };
 
     const handleEditUser = (user) => {
-        setEditingUser(user);
-        setFormData({
-            fullName: user.full_name,
-            username: user.username,
-            email: user.email || '',
-            phone: user.phone || '',
-            password: '', // No mostramos la contraseña por seguridad
-            role: user.role_name,
-            unitId: user.unit_id || '', // NUEVO: Cargar unidad del usuario
-            isActive: user.is_active,
-            notes: user.notes || ''
-        });
-        setShowModal(true);
-        setError('');
-    };
+    setEditingUser(user);
+    setFormData({
+        fullName: user.full_name,
+        username: user.username,
+        email: user.email || '',
+        phone: user.phone || '',
+        password: '', // No mostramos la contraseña por seguridad
+        role: user.role_name,
+        unitId: user.unit_id || '', // Asegurar que sea string vacío si es null
+        isActive: user.is_active,
+        notes: user.notes || ''
+    });
+    setShowModal(true);
+    setError('');
+};
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        try {
-            const url = editingUser 
-                ? `http://localhost:3310/api/users/${editingUser.id}`
-                : 'http://localhost:3310/api/users/create';
+    e.preventDefault();
+    
+    try {
+        // Preparar datos para enviar - convertir unitId vacío a null
+        const submitData = {
+            ...formData,
+            unitId: formData.unitId === '' ? null : formData.unitId
+        };
 
-            const method = editingUser ? 'PUT' : 'POST';
+        const url = editingUser 
+            ? `http://localhost:3310/api/users/${editingUser.id}`
+            : 'http://localhost:3310/api/users/create';
 
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
+        const method = editingUser ? 'PUT' : 'POST';
 
-            const result = await response.json();
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(submitData) // Usar submitData en lugar de formData
+        });
 
-            if (!response.ok) {
-                throw new Error(result.message || 'Error al guardar usuario');
-            }
+        const result = await response.json();
 
-            // Actualizar la lista de usuarios
-            await fetchData();
-            
-            setShowModal(false);
-            alert(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
-            
-        } catch (error) {
-            console.error('Error:', error);
-            setError(error.message);
+        if (!response.ok) {
+            throw new Error(result.message || 'Error al guardar usuario');
         }
-    };
+
+        // Actualizar la lista de usuarios
+        await fetchData();
+        
+        setShowModal(false);
+        alert(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        setError(error.message);
+    }
+};
 
     const handleDeleteUser = async (userId) => {
         if (window.confirm('¿Estás seguro de que deseas desactivar este usuario?')) {
@@ -463,30 +469,30 @@ const UserManagement = () => {
 
                                     {/* NUEVO: Campo de unidad */}
                                     <div className="form-group">
-                                        <label>Unidad Asignada</label>
-                                        <select
-                                            name="unitId"
-                                            value={formData.unitId}
-                                            onChange={handleInputChange}
-                                        >
-                                            <option value="">Seleccione una unidad (opcional)</option>
-                                            {units
-                                                .filter(unit => unit.status === 'activo')
-                                                .map(unit => (
-                                                    <option key={unit.id} value={unit.id}>
-                                                        {unit.name} - {unit.unit_type_name}
-                                                    </option>
-                                                ))
-                                            }
-                                        </select>
-                                        {formData.unitId && (
-                                            <div className="selected-unit">
-                                                Unidad seleccionada: {
-                                                    units.find(u => u.id === parseInt(formData.unitId))?.name
+                                            <label>Unidad Asignada</label>
+                                            <select
+                                                name="unitId"
+                                                value={formData.unitId}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Sin unidad asignada</option>
+                                                {units
+                                                    .filter(unit => unit.status === 'activo')
+                                                    .map(unit => (
+                                                        <option key={unit.id} value={unit.id}>
+                                                            {unit.name} - {unit.unit_type_name}
+                                                        </option>
+                                                    ))
                                                 }
-                                            </div>
-                                        )}
-                                    </div>
+                                            </select>
+                                            {formData.unitId && (
+                                                <div className="selected-unit">
+                                                    Unidad seleccionada: {
+                                                        units.find(u => u.id === parseInt(formData.unitId))?.name
+                                                    }
+                                                </div>
+                                            )}
+                                        </div>
 
                                     <div className="form-group">
                                         <label className="checkbox-label">
