@@ -34,7 +34,8 @@ app.use(session({
 app.use('/api/auth', authRoutes);
 app.use('/api/incidents', incidentRoutes); 
 app.use('/api/users', userRoutes); 
-app.use('/api/units', unitRoutes); // NUEVA RUTA
+app.use('/api/units', unitRoutes); 
+app.use('/api/system', require('./routes/system.routes'));
 
 const PORT = process.env.PORT || 3310;
 

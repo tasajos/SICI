@@ -11,7 +11,7 @@ import UserManagement from './pages/admin/UserManagement.jsx';
 import IncidentList from './pages/admin/IncidentList.jsx'; 
 import EquipmentUnits from './pages/admin/EquipmentUnits.jsx'; 
 import Reports from './pages/admin/Reports.jsx'; 
-// import SystemConfig from './pages/admin/SystemConfig.jsx'; 
+import SystemConfig from './pages/admin/SystemConfig.jsx'; 
 
 // Importaciones de Voluntario
 import VolunteerDashboard from './pages/VolunteerDashboard.jsx';
@@ -43,7 +43,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     <Route path="/admin/incidents" element={<IncidentList />} /> 
                     <Route path="/admin/resources" element={<EquipmentUnits />} /> 
                     <Route path="/admin/reports" element={<Reports />} />
-                    {/* <Route path="/admin/settings" element={<SystemConfig />} /> */}
+                    <Route path="/admin/settings" element={<SystemConfig />} /> 
                 </Route>
 
                 {/* Rutas Protegidas - Voluntario */}
