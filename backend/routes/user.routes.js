@@ -164,6 +164,47 @@ router.post('/create', async (req, res) => {
 });
 
 
+// GET /api/users/me - Obtener información del usuario actual
+router.get('/me', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    try {
+        const [users] = await pool.execute(`
+            SELECT 
+                u.*,
+                r.name as role_name,
+                ut.name as unit_name,
+                ut_types.name as unit_type_name,
+                creator.username as created_by_username
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            LEFT JOIN units ut ON u.unit_id = ut.id
+            LEFT JOIN unit_types ut_types ON ut.unit_type_id = ut_types.id
+            LEFT JOIN users creator ON u.created_by = creator.id
+            WHERE u.id = ?
+        `, [req.session.user.id]);
+
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+
+        res.json({
+            message: 'Usuario obtenido exitosamente',
+            data: users[0]
+        });
+
+    } catch (error) {
+        console.error('Error al obtener usuario:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
 // PUT /api/users/:id - Actualizar usuario (SIN HASH)
 router.put('/:id', async (req, res) => {
     if (!req.session.user) {
@@ -368,6 +409,54 @@ router.put('/:id/status', async (req, res) => {
         });
     }
 });
+
+// GET /api/users/my-assignments
+router.get('/my-assignments', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    try {
+        const [assignments] = await pool.execute(`
+            SELECT 
+                ia.*,
+                i.incident_name,
+                i.incident_type,
+                i.severity_level,
+                i.location,
+                i.description,
+                i.status as incident_status,
+                i.start_date,
+                i.estimated_duration,
+                i.resources_needed,
+                i.emergency_contacts,
+                u.full_name as user_name,
+                u.unit_id,
+                un.name as unit_name,
+                creator.username as incident_creator
+            FROM incident_assignments ia
+            JOIN incidents i ON ia.incident_id = i.id
+            JOIN users u ON ia.user_id = u.id
+            LEFT JOIN units un ON u.unit_id = un.id
+            LEFT JOIN users creator ON i.created_by = creator.id
+            WHERE ia.user_id = ? AND ia.status = 'active'
+            ORDER BY ia.assignment_date DESC
+        `, [req.session.user.id]);
+
+        res.json({
+            message: 'Asignaciones obtenidas exitosamente',
+            data: assignments
+        });
+
+    } catch (error) {
+        console.error('Error al obtener asignaciones:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 
 // DELETE /api/users/:id - Eliminar usuario (solo desactiva)
 router.delete('/:id', async (req, res) => {

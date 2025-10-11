@@ -4,9 +4,8 @@ const pool = require('../config/db');
 
 // POST /api/incidents/create - Crear nuevo SCI
 router.post('/create', async (req, res) => {
-    // Verificar si el usuario está autenticado
     if (!req.session.user) {
-        return res.status(401).json({ message: 'No autorizado. Debe iniciar sesión.' });
+        return res.status(401).json({ message: 'No autorizado.' });
     }
 
     const {
@@ -25,15 +24,15 @@ router.post('/create', async (req, res) => {
         emergencyContacts
     } = req.body;
 
-    // Validación básica de campos requeridos
-    if (!incidentName || !incidentType || !severityLevel || !location || !description || !commander || !startDate) {
+    // Validaciones
+    if (!incidentName || !incidentType || !severityLevel || !location || !description || !commander) {
         return res.status(400).json({ 
-            message: 'Faltan campos obligatorios: nombre, tipo, severidad, ubicación, descripción, comandante y fecha de inicio.' 
+            message: 'Faltan campos obligatorios.' 
         });
     }
 
     try {
-        // Insertar el incidente en la base de datos
+        // Insertar el incidente
         const [result] = await pool.execute(
             `INSERT INTO incidents (
                 incident_name, incident_type, severity_level, location, description,
@@ -54,36 +53,98 @@ router.post('/create', async (req, res) => {
                 estimatedDuration || null,
                 resourcesNeeded || null,
                 emergencyContacts || null,
-                req.session.user.id // ID del usuario que crea el incidente
+                req.session.user.id
             ]
         );
 
-        // Respuesta exitosa
+        const incidentId = result.insertId;
+
+        // Registrar las asignaciones en incident_assignments
+        const assignments = [];
+
+        // Comandante (obligatorio)
+        if (commander) {
+            assignments.push([
+                commander, 
+                incidentId, 
+                'commander', 
+                'active'
+            ]);
+        }
+
+        // Oficial de Información Pública (opcional)
+        if (publicInformationOfficer && publicInformationOfficer !== '') {
+            assignments.push([
+                publicInformationOfficer, 
+                incidentId, 
+                'public_information_officer', 
+                'active'
+            ]);
+        }
+
+        // Oficial de Enlaces (opcional)
+        if (liaisonOfficer && liaisonOfficer !== '') {
+            assignments.push([
+                liaisonOfficer, 
+                incidentId, 
+                'liaison_officer', 
+                'active'
+            ]);
+        }
+
+        // Oficial de Seguridad (opcional)
+        if (safetyOfficer && safetyOfficer !== '') {
+            assignments.push([
+                safetyOfficer, 
+                incidentId, 
+                'safety_officer', 
+                'active'
+            ]);
+        }
+
+        // Insertar todas las asignaciones si hay alguna
+        if (assignments.length > 0) {
+            // Construir la consulta dinámicamente para múltiples valores
+            const placeholders = assignments.map(() => '(?, ?, ?, ?)').join(', ');
+            const values = assignments.flat(); // Aplanar el array de arrays
+            
+            await pool.execute(
+                `INSERT INTO incident_assignments 
+                 (user_id, incident_id, assignment_type, status) 
+                 VALUES ${placeholders}`,
+                values
+            );
+
+            console.log(`✅ Se registraron ${assignments.length} asignaciones para el incidente ${incidentId}`);
+        }
+
+        // Obtener el incidente creado con información completa
+        const [newIncidents] = await pool.execute(`
+            SELECT 
+                i.*,
+                creator.username as created_by_username,
+                cmd.full_name as commander_name,
+                cmd_role.name as commander_role,
+                cmd_unit.name as commander_unit
+            FROM incidents i
+            LEFT JOIN users creator ON i.created_by = creator.id
+            LEFT JOIN users cmd ON i.commander = cmd.id
+            LEFT JOIN roles cmd_role ON cmd.role_id = cmd_role.id
+            LEFT JOIN units cmd_unit ON cmd.unit_id = cmd_unit.id
+            WHERE i.id = ?
+        `, [incidentId]);
+
         res.status(201).json({
-            message: 'SCI creado exitosamente',
-            incidentId: result.insertId,
-            data: {
-                id: result.insertId,
-                incidentName,
-                incidentType,
-                severityLevel,
-                location,
-                commander,
-                startDate,
-                status: 'activo'
-            }
+            message: 'Incidente creado exitosamente y asignaciones registradas',
+            incidentId: incidentId,
+            data: newIncidents[0],
+            assignmentsCount: assignments.length
         });
 
     } catch (error) {
-        console.error('Error al crear SCI:', error);
-        
-        // Manejar errores específicos de MySQL
-        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-            return res.status(400).json({ message: 'Usuario creador no válido.' });
-        }
-        
+        console.error('Error al crear incidente:', error);
         res.status(500).json({ 
-            message: 'Error interno del servidor al crear el SCI.',
+            message: 'Error interno del servidor.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -305,6 +366,254 @@ router.get('/:id', async (req, res) => {
         });
     }
 });
+
+// PUT /api/incidents/:id - Actualizar incidente y sus asignaciones
+router.put('/:id', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    const incidentId = req.params.id;
+    const {
+        incidentName,
+        incidentType,
+        severityLevel,
+        location,
+        description,
+        commander,
+        publicInformationOfficer,
+        liaisonOfficer,
+        safetyOfficer,
+        startDate,
+        estimatedDuration,
+        resourcesNeeded,
+        emergencyContacts,
+        status
+    } = req.body;
+
+    try {
+        // Verificar si el incidente existe
+        const [existingIncidents] = await pool.execute(
+            'SELECT id FROM incidents WHERE id = ?',
+            [incidentId]
+        );
+
+        if (existingIncidents.length === 0) {
+            return res.status(404).json({ message: 'Incidente no encontrado.' });
+        }
+
+        // Construir la consulta de actualización dinámicamente
+        let updateFields = [];
+        let updateValues = [];
+
+        if (incidentName) {
+            updateFields.push('incident_name = ?');
+            updateValues.push(incidentName);
+        }
+        if (incidentType) {
+            updateFields.push('incident_type = ?');
+            updateValues.push(incidentType);
+        }
+        if (severityLevel) {
+            updateFields.push('severity_level = ?');
+            updateValues.push(severityLevel);
+        }
+        if (location) {
+            updateFields.push('location = ?');
+            updateValues.push(location);
+        }
+        if (description) {
+            updateFields.push('description = ?');
+            updateValues.push(description);
+        }
+        if (commander) {
+            updateFields.push('commander = ?');
+            updateValues.push(commander);
+        }
+        if (publicInformationOfficer !== undefined) {
+            updateFields.push('public_information_officer = ?');
+            updateValues.push(publicInformationOfficer);
+        }
+        if (liaisonOfficer !== undefined) {
+            updateFields.push('liaison_officer = ?');
+            updateValues.push(liaisonOfficer);
+        }
+        if (safetyOfficer !== undefined) {
+            updateFields.push('safety_officer = ?');
+            updateValues.push(safetyOfficer);
+        }
+        if (startDate) {
+            updateFields.push('start_date = ?');
+            updateValues.push(startDate);
+        }
+        if (estimatedDuration !== undefined) {
+            updateFields.push('estimated_duration = ?');
+            updateValues.push(estimatedDuration);
+        }
+        if (resourcesNeeded !== undefined) {
+            updateFields.push('resources_needed = ?');
+            updateValues.push(resourcesNeeded);
+        }
+        if (emergencyContacts !== undefined) {
+            updateFields.push('emergency_contacts = ?');
+            updateValues.push(emergencyContacts);
+        }
+        if (status) {
+            updateFields.push('status = ?');
+            updateValues.push(status);
+        }
+
+        if (updateFields.length === 0) {
+            return res.status(400).json({ 
+                message: 'No hay campos para actualizar.' 
+            });
+        }
+
+        updateValues.push(incidentId);
+
+        // Actualizar el incidente
+        const [result] = await pool.execute(
+            `UPDATE incidents SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+            updateValues
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Incidente no encontrado.' });
+        }
+
+        // Actualizar asignaciones si se cambiaron los roles
+        if (commander || publicInformationOfficer !== undefined || liaisonOfficer !== undefined || safetyOfficer !== undefined) {
+            await updateIncidentAssignments(incidentId, {
+                commander,
+                publicInformationOfficer,
+                liaisonOfficer,
+                safetyOfficer
+            });
+        }
+
+        // Obtener el incidente actualizado
+        const [updatedIncidents] = await pool.execute(`
+            SELECT 
+                i.*,
+                creator.username as created_by_username,
+                cmd.full_name as commander_name,
+                cmd_role.name as commander_role,
+                cmd_unit.name as commander_unit
+            FROM incidents i
+            LEFT JOIN users creator ON i.created_by = creator.id
+            LEFT JOIN users cmd ON i.commander = cmd.id
+            LEFT JOIN roles cmd_role ON cmd.role_id = cmd_role.id
+            LEFT JOIN units cmd_unit ON cmd.unit_id = cmd_unit.id
+            WHERE i.id = ?
+        `, [incidentId]);
+
+        res.json({
+            message: 'Incidente actualizado exitosamente',
+            data: updatedIncidents[0]
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar incidente:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Función auxiliar para actualizar asignaciones
+async function updateIncidentAssignments(incidentId, roles) {
+    try {
+        // Primero, desactivar todas las asignaciones existentes para este incidente
+        await pool.execute(
+            'UPDATE incident_assignments SET status = "cancelled", updated_at = CURRENT_TIMESTAMP WHERE incident_id = ?',
+            [incidentId]
+        );
+
+        // Luego, crear nuevas asignaciones activas
+        const newAssignments = [];
+
+        if (roles.commander) {
+            newAssignments.push([roles.commander, incidentId, 'commander', 'active']);
+        }
+        if (roles.publicInformationOfficer && roles.publicInformationOfficer !== '') {
+            newAssignments.push([roles.publicInformationOfficer, incidentId, 'public_information_officer', 'active']);
+        }
+        if (roles.liaisonOfficer && roles.liaisonOfficer !== '') {
+            newAssignments.push([roles.liaisonOfficer, incidentId, 'liaison_officer', 'active']);
+        }
+        if (roles.safetyOfficer && roles.safetyOfficer !== '') {
+            newAssignments.push([roles.safetyOfficer, incidentId, 'safety_officer', 'active']);
+        }
+
+        if (newAssignments.length > 0) {
+            // Construir la consulta dinámicamente para múltiples valores
+            const placeholders = newAssignments.map(() => '(?, ?, ?, ?)').join(', ');
+            const values = newAssignments.flat();
+            
+            await pool.execute(
+                `INSERT INTO incident_assignments 
+                 (user_id, incident_id, assignment_type, status) 
+                 VALUES ${placeholders}`,
+                values
+            );
+        }
+
+        console.log(`✅ Asignaciones actualizadas para incidente ${incidentId}: ${newAssignments.length} nuevas asignaciones`);
+    } catch (error) {
+        console.error('Error al actualizar asignaciones:', error);
+        throw error;
+    }
+}
+
+
+// PUT /api/incidents/:id/assignment-status - Cambiar estado de asignación
+router.put('/:id/assignment-status', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    const incidentId = req.params.id;
+    const { userId, assignmentType, status } = req.body;
+
+    if (!userId || !assignmentType || !status) {
+        return res.status(400).json({ 
+            message: 'Faltan campos: userId, assignmentType, status.' 
+        });
+    }
+
+    if (!['active', 'completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ 
+            message: 'Estado no válido. Use: active, completed, cancelled.' 
+        });
+    }
+
+    try {
+        const [result] = await pool.execute(
+            'UPDATE incident_assignments SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE incident_id = ? AND user_id = ? AND assignment_type = ?',
+            [status, incidentId, userId, assignmentType]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ 
+                message: 'Asignación no encontrada.' 
+            });
+        }
+
+        res.json({
+            message: `Estado de asignación actualizado a: ${status}`,
+            data: { incidentId, userId, assignmentType, status }
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar estado de asignación:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 
 // PUT /api/incidents/:id/status - Actualizar estado del incidente
 router.put('/:id/status', async (req, res) => {

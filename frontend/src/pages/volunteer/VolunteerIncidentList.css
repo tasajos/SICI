@@ -1,0 +1,414 @@
+.volunteer-incident-list-container {
+    padding: 2rem;
+    width: 100%;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.vil-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    max-width: none;
+}
+
+.back-button {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.back-button:hover {
+    background: #5a6268;
+}
+
+.vil-header h1 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+.vil-header p {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.volunteer-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin-top: 1rem;
+    color: #856404;
+    font-size: 14px;
+    max-width: none;
+}
+
+/* Barra de herramientas */
+.vil-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-filter-section {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex: 1;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    white-space: nowrap;
+}
+
+.filter-select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    box-sizing: border-box;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.refresh-btn {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.refresh-btn:hover {
+    background: #138496;
+}
+
+/* Estadísticas */
+.vil-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #3498db;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.stat-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+/* Tabla de incidentes - CORREGIDO */
+.incidents-table-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.incidents-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Esto ayuda a distribuir el ancho uniformemente */
+}
+
+.incidents-table th {
+    background: #34495e;
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.incidents-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #ecf0f1;
+    font-size: 14px;
+    word-wrap: break-word;
+}
+
+/* Distribución de columnas más equilibrada */
+.incidents-table th:nth-child(1), /* ID */
+.incidents-table td:nth-child(1) {
+    width: 5%;
+}
+
+.incidents-table th:nth-child(2), /* Nombre */
+.incidents-table td:nth-child(2) {
+    width: 20%;
+}
+
+.incidents-table th:nth-child(3), /* Tipo */
+.incidents-table td:nth-child(3) {
+    width: 12%;
+}
+
+.incidents-table th:nth-child(4), /* Severidad */
+.incidents-table td:nth-child(4) {
+    width: 8%;
+}
+
+.incidents-table th:nth-child(5), /* Comandante */
+.incidents-table td:nth-child(5) {
+    width: 20%;
+}
+
+.incidents-table th:nth-child(6), /* Ubicación */
+.incidents-table td:nth-child(6) {
+    width: 15%;
+}
+
+.incidents-table th:nth-child(7), /* Fecha Inicio */
+.incidents-table td:nth-child(7) {
+    width: 12%;
+}
+
+.incidents-table th:nth-child(8), /* Estado */
+.incidents-table td:nth-child(8) {
+    width: 8%;
+}
+
+.incident-row:hover {
+    background-color: #f8f9fa;
+}
+
+.incident-id {
+    font-weight: bold;
+    color: #7f8c8d;
+}
+
+.incident-name strong {
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.incident-meta {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.commander-cell {
+    line-height: 1.4;
+}
+
+.location-cell {
+    line-height: 1.4;
+}
+
+/* Badges */
+.status-badge, .severity-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    min-width: 70px;
+}
+
+.severity-badge {
+    color: white !important;
+}
+
+/* Estados y mensajes */
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 1rem;
+    text-align: center;
+}
+
+.no-incidents {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+/* Información de resumen */
+.summary-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.summary-info p {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.read-only-notice {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .incidents-table {
+        table-layout: auto;
+    }
+    
+    .incidents-table th,
+    .incidents-table td {
+        width: auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .volunteer-incident-list-container {
+        padding: 1rem;
+    }
+    
+    .vil-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .search-filter-section {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .search-box {
+        max-width: none;
+    }
+    
+    .vil-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .incidents-table {
+        font-size: 0.8rem;
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .incidents-table th,
+    .incidents-table td {
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .summary-info {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .incident-meta {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .vil-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .vil-header h1 {
+        font-size: 2rem;
+    }
+    
+    .back-button {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    
+    .vil-header {
+        text-align: left;
+    }
+}

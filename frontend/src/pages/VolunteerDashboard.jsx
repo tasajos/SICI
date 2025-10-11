@@ -12,11 +12,32 @@ const VolunteerDashboard = () => {
         todayIncidents: 0,
         loading: true
     });
+    const [assignments, setAssignments] = useState([]);
+    const [assignmentsLoading, setAssignmentsLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [showAssignmentsModal, setShowAssignmentsModal] = useState(false);
 
-    // Cargar estadísticas al montar el componente
+    // Cargar estadísticas y asignaciones al montar el componente
     useEffect(() => {
         fetchDashboardStats();
+        fetchUserData();
+        fetchAssignments();
     }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const response = await fetch('http://localhost:3310/api/users/me', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setUser(result.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar datos del usuario:', error);
+        }
+    };
 
     const fetchDashboardStats = async () => {
         try {
@@ -49,13 +70,9 @@ const VolunteerDashboard = () => {
                 return incidentDate === today;
             }).length;
 
-            // Para voluntarios, mostramos 0 en "Mis Incidentes" por ahora
-            // En una implementación real, esto vendría de la base de datos
-            const myInvolvedIncidents = 0;
-
             setStats({
                 activeIncidents,
-                myInvolvedIncidents,
+                myInvolvedIncidents: assignments.length,
                 availableUnits,
                 todayIncidents,
                 loading: false
@@ -65,6 +82,75 @@ const VolunteerDashboard = () => {
             console.error('Error al cargar estadísticas:', error);
             setStats(prev => ({ ...prev, loading: false }));
         }
+    };
+
+    const fetchAssignments = async () => {
+        try {
+            const response = await fetch('http://localhost:3310/api/users/my-assignments', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const result = await response.json();
+            
+            if (response.ok) {
+                setAssignments(result.data || []);
+                // Actualizar el contador de asignaciones en las stats
+                setStats(prev => ({
+                    ...prev,
+                    myInvolvedIncidents: result.data.length
+                }));
+            }
+        } catch (error) {
+            console.error('Error al cargar asignaciones:', error);
+        } finally {
+            setAssignmentsLoading(false);
+        }
+    };
+
+    const getAssignmentTypeLabel = (type) => {
+        const types = {
+            'commander': 'Comandante del Incidente',
+            'public_information_officer': 'Oficial de Información Pública',
+            'liaison_officer': 'Oficial de Enlaces',
+            'safety_officer': 'Oficial de Seguridad'
+        };
+        return types[type] || type;
+    };
+
+    const getSeverityColor = (severity) => {
+        const colors = {
+            'bajo': '#27ae60',
+            'medio': '#f39c12',
+            'alto': '#e67e22',
+            'critico': '#e74c3c'
+        };
+        return colors[severity] || '#7f8c8d';
+    };
+
+    const getStatusColor = (status) => {
+        const colors = {
+            'activo': '#27ae60',
+            'cerrado': '#e74c3c',
+            'suspendido': '#f39c12'
+        };
+        return colors[status] || '#7f8c8d';
+    };
+
+    const handleRefreshAll = () => {
+        setStats(prev => ({ ...prev, loading: true }));
+        setAssignmentsLoading(true);
+        fetchDashboardStats();
+        fetchAssignments();
+    };
+
+    const handleAssignmentsCardClick = () => {
+        if (assignments.length > 0) {
+            setShowAssignmentsModal(true);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setShowAssignmentsModal(false);
     };
 
     const cards = [
@@ -135,15 +221,21 @@ const VolunteerDashboard = () => {
                 <div className="dashboard-header">
                     <h1>🚑 Panel de Voluntario</h1>
                     <p>Bienvenido al Sistema de Comando de Incidentes - Módulo de Respuesta</p>
+                    {user && (
+                        <div className="user-welcome">
+                            <strong>{user.full_name}</strong> - {user.role_name}
+                            {user.unit_name && <span> - {user.unit_name}</span>}
+                        </div>
+                    )}
                     <button 
                         className="refresh-stats-btn"
-                        onClick={fetchDashboardStats}
-                        disabled={stats.loading}
+                        onClick={handleRefreshAll}
+                        disabled={stats.loading || assignmentsLoading}
                     >
                         {stats.loading ? '🔄 Cargando...' : '🔄 Actualizar'}
                     </button>
                 </div>
-                
+
                 {/* Estadísticas rápidas */}
                 <div className="dashboard-stats">
                     <div className="stat-card">
@@ -159,7 +251,11 @@ const VolunteerDashboard = () => {
                         </div>
                     </div>
                     
-                    <div className="stat-card">
+                    <div 
+                        className={`stat-card assignments-card ${assignments.length > 0 ? 'has-assignments' : ''}`}
+                        onClick={handleAssignmentsCardClick}
+                        style={{ cursor: assignments.length > 0 ? 'pointer' : 'default' }}
+                    >
                         <div className="stat-icon">👤</div>
                         <div className="stat-content">
                             <h4>Mis Asignaciones</h4>
@@ -168,8 +264,13 @@ const VolunteerDashboard = () => {
                             ) : (
                                 <span className="stat-number">{stats.myInvolvedIncidents}</span>
                             )}
-                            <p className="stat-description">Incidentes asignados</p>
+                            <p className="stat-description">
+                                {assignments.length > 0 ? 'Click para ver detalles' : 'Incidentes asignados'}
+                            </p>
                         </div>
+                        {assignments.length > 0 && (
+                            <div className="assignment-indicator">📋</div>
+                        )}
                     </div>
                     
                     <div className="stat-card">
@@ -272,6 +373,99 @@ const VolunteerDashboard = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* Modal de Asignaciones */}
+                {showAssignmentsModal && (
+                    <div className="modal-overlay" onClick={handleCloseModal}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h2>📋 Mis Asignaciones Activas</h2>
+                                <button className="modal-close" onClick={handleCloseModal}>×</button>
+                            </div>
+                            
+                            <div className="modal-body">
+                                <div className="assignments-list">
+                                    {assignments.map(assignment => (
+                                        <div key={assignment.id} className="assignment-modal-card">
+                                            <div className="assignment-modal-header">
+                                                <h3>{assignment.incident_name}</h3>
+                                                <div className="assignment-badges">
+                                                    <span 
+                                                        className="severity-badge"
+                                                        style={{ backgroundColor: getSeverityColor(assignment.severity_level) }}
+                                                    >
+                                                        {assignment.severity_level.toUpperCase()}
+                                                    </span>
+                                                    <span 
+                                                        className="status-badge"
+                                                        style={{ backgroundColor: getStatusColor(assignment.incident_status) }}
+                                                    >
+                                                        {assignment.incident_status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="assignment-modal-details">
+                                                <div className="detail-row">
+                                                    <span className="detail-label">Tipo de Incidente:</span>
+                                                    <span className="detail-value">{assignment.incident_type}</span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="detail-label">Mi Rol:</span>
+                                                    <span className="detail-value role">{getAssignmentTypeLabel(assignment.assignment_type)}</span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="detail-label">Ubicación:</span>
+                                                    <span className="detail-value">{assignment.location}</span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="detail-label">Fecha de Inicio:</span>
+                                                    <span className="detail-value">
+                                                        {new Date(assignment.start_date).toLocaleString('es-ES')}
+                                                    </span>
+                                                </div>
+                                                <div className="detail-row">
+                                                    <span className="detail-label">Duración Estimada:</span>
+                                                    <span className="detail-value">{assignment.estimated_duration || 'No especificada'}</span>
+                                                </div>
+                                                {assignment.description && (
+                                                    <div className="detail-row full-width">
+                                                        <span className="detail-label">Descripción:</span>
+                                                        <span className="detail-value description">{assignment.description}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="assignment-modal-footer">
+                                                <span className="assignment-date">
+                                                    Asignado el: {new Date(assignment.assignment_date).toLocaleDateString('es-ES')}
+                                                </span>
+                                                <button 
+                                                    className="view-incident-btn"
+                                                    onClick={() => {
+                                                        handleCloseModal();
+                                                        navigate('/volunteer/incidents');
+                                                    }}
+                                                >
+                                                    Ver en Lista de Incidentes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button 
+                                    className="btn-close-modal"
+                                    onClick={handleCloseModal}
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );
