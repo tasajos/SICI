@@ -1,48 +1,87 @@
+/* ===== RESET Y ESTILOS BASE ===== */
 .form-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 2000;
 }
 
 .form-modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 95%;
     max-width: 800px;
     max-height: 90vh;
-    width: 95%;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .form-modal-body {
+    padding: 2rem;
     max-height: calc(90vh - 120px);
     overflow-y: auto;
 }
 
 .ics-form {
+    background: white;
+    border-radius: 8px;
     padding: 0;
 }
 
+/* ===== ESTRUCTURA DEL FORMULARIO ===== */
 .form-fields {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #2c3e50;
-    font-size: 0.9rem;
+    color: #34495e;
+    font-size: 0.95rem;
 }
 
+/* ===== CAMPOS DE FORMULARIO ===== */
 .form-group input,
 .form-group textarea,
 .form-group select {
+    width: 100%;
     padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    transition: border-color 0.2s ease;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -58,49 +97,255 @@
     min-height: 80px;
 }
 
+/* ===== SELECTS MEJORADOS ===== */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 12px;
+    padding-right: 2.5rem;
+    cursor: pointer;
+    background-color: white;
+}
+
+/* Placeholder para select */
+select:invalid {
+    color: #6c757d;
+}
+
+select:valid {
+    color: #495057;
+}
+
+select option {
+    color: #495057;
+    background-color: white;
+    padding: 0.5rem;
+}
+
+select option[value=""] {
+    color: #6c757d;
+    font-style: italic;
+}
+
+select:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%233498db' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+}
+
+/* ===== BOTONES ===== */
 .form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
+    margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #ecf0f1;
-    margin-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
 }
 
 .btn-cancel {
-    background: #95a5a6;
-    color: white;
-    border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: 5px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    background-color: #ecf0f1;
+    color: #2c3e50;
     cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
     font-weight: 600;
 }
 
 .btn-cancel:hover {
-    background: #7f8c8d;
+    background-color: #bdc3c7;
 }
 
 .btn-save {
-    background: #27ae60;
-    color: white;
-    border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: 5px;
+    border: none;
+    border-radius: 4px;
+    background-color: #27ae60;
+    color: white;
     cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
     font-weight: 600;
 }
 
 .btn-save:hover:not(:disabled) {
-    background: #219a52;
+    background-color: #219a52;
 }
 
 .btn-save:disabled {
-    background: #bdc3c7;
+    background-color: #95a5a6;
     cursor: not-allowed;
 }
 
-/* Estilos para los botones de formularios en el modal */
+/* ===== ESTADOS ESPECIALES ===== */
+.read-only-field {
+    background-color: #f8f9fa;
+    border-color: #6c757d;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.read-only-field:focus {
+    border-color: #6c757d;
+    box-shadow: none;
+}
+
+.auto-filled-field {
+    background-color: #e8f5e8;
+    border-color: #28a745;
+}
+
+.selected-field {
+    background-color: #e8f5e8;
+    border-color: #28a745;
+}
+
+/* ===== INFORMACIÓN Y NOTAS ===== */
+.field-note {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.field-note.info {
+    color: #17a2b8;
+}
+
+.auto-load-info {
+    background-color: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.auto-load-info h4 {
+    margin-top: 0;
+    color: #1976d2;
+    font-size: 1rem;
+}
+
+.auto-load-info p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.info-note {
+    color: #1976d2;
+    font-weight: bold;
+}
+
+/* ===== ESTADOS DE CARGA ===== */
+.form-loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.loading-spinner {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA FORM 207 ===== */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.half-width {
+    flex: 1;
+}
+
+.status-info {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.status-info h4 {
+    margin-top: 0;
+    color: #495057;
+    border-bottom: 2px solid #6c757d;
+    padding-bottom: 0.5rem;
+}
+
+.status-legends {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.status-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 4px;
+    border-left: 4px solid transparent;
+}
+
+.status-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #dee2e6;
+    flex-shrink: 0;
+}
+
+.status-color.disponible {
+    background-color: #28a745;
+}
+
+.status-color.en_uso {
+    background-color: #007bff;
+}
+
+.status-color.mantenimiento {
+    background-color: #ffc107;
+}
+
+.status-color.baja {
+    background-color: #dc3545;
+}
+
+.status-label {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+/* ===== MEJORAS PARA CAMPOS NUMÉRICOS ===== */
+input[type="number"] {
+    text-align: center;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 1.5em;
+}
+
+/* ===== BOTONES DE FORMULARIOS EN MODAL ===== */
 .available-forms {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -138,11 +383,32 @@
     opacity: 0.8;
 }
 
-/* Responsive */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .form-modal-content {
         width: 98%;
         margin: 10px;
+    }
+    
+    .form-modal-body {
+        padding: 1rem;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .half-width {
+        flex: none;
+    }
+    
+    .status-legends {
+        grid-template-columns: 1fr;
     }
     
     .available-forms {
@@ -157,199 +423,63 @@
     .btn-save {
         width: 100%;
     }
+    
+    select {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
 }
 
-.form-section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #fafafa;
-}
-
-.form-section h3 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 0.5rem;
-    font-size: 1.2rem;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #34495e;
-}
-
+/* ===== CORRECCIONES PARA PROBLEMAS COMUNES ===== */
+/* Evita que los campos se salgan de su contenedor */
 .form-group input,
 .form-group textarea,
 .form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
+    max-width: 100%;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+/* Mejora la legibilidad en móviles */
+@media (max-width: 480px) {
+    .form-section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px; /* Previene zoom en iOS */
+        padding: 0.875rem;
+    }
 }
 
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.form-actions {
+/* Corrige problemas de alineación vertical */
+.form-group {
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e0e0e0;
+    flex-direction: column;
 }
 
-.btn-cancel {
-    padding: 0.75rem 1.5rem;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    background-color: #ecf0f1;
+/* Asegura consistencia en todos los navegadores */
+select::-ms-expand {
+    display: none;
+}
+
+/* Mejora el contraste para accesibilidad */
+.form-group label {
     color: #2c3e50;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-cancel:hover {
-    background-color: #bdc3c7;
 }
 
 .btn-save {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
     background-color: #27ae60;
-    color: white;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
 }
 
-.btn-save:hover:not(:disabled) {
-    background-color: #219a52;
-}
-
-.btn-save:disabled {
+.btn-cancel {
     background-color: #95a5a6;
-    cursor: not-allowed;
+    color: white;
 }
 
-/* Estilos para el modal del formulario */
-.form-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.form-modal-content {
-    background: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.form-modal-body {
-    padding: 2rem;
-    max-height: calc(90vh - 120px);
-    overflow-y: auto;
-}
-
-.ics-form {
-    background: white;
-    border-radius: 8px;
-}
-
-
-/* Estilos para campos de carga automática */
-.read-only-field {
-    background-color: #f8f9fa;
-    border-color: #6c757d;
-    color: #495057;
-    cursor: not-allowed;
-}
-
-.auto-filled-field {
-    background-color: #e8f5e8;
-    border-color: #28a745;
-}
-
-.field-note {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    font-style: italic;
-}
-
-.field-note.info {
-    color: #17a2b8;
-}
-
-.form-loading {
-    text-align: center;
-    padding: 2rem;
-}
-
-.loading-spinner {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.auto-load-info {
-    background-color: #e3f2fd;
-    border: 1px solid #2196f3;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-}
-
-.auto-load-info h4 {
-    margin-top: 0;
-    color: #1976d2;
-}
-
-.auto-load-info p {
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
-}
-
-.info-note {
-    color: #1976d2;
-    font-weight: bold;
+.btn-cancel:hover {
+    background-color: #7f8c8d;
 }

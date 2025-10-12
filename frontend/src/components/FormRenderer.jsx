@@ -52,10 +52,10 @@ const FormRenderer = ({ form, incidentId, onClose, onSave }) => {
                 return <Form205 fields={formData} onChange={handleInputChange} />;
             case 'form206':
                 return <Form206 fields={formData} onChange={handleInputChange} />;
-            case 'form207':
-                return <Form207 fields={formData} onChange={handleInputChange} />;
+             case 'form207':
+            return <Form207 fields={formData} onChange={handleInputChange} incidentId={incidentId} />;
             case 'form208':
-                return <Form208 fields={formData} onChange={handleInputChange} />;
+                return <Form208 fields={formData} onChange={handleInputChange} incidentId={incidentId} />;
             case 'form209':
                 return <Form209 fields={formData} onChange={handleInputChange} />;
             case 'form211':
@@ -632,12 +632,412 @@ const Form206 = ({ fields, onChange }) => {
     return <div className="form-fields">Formulario ICS-206 - En desarrollo</div>;
 };
 
-const Form207 = ({ fields, onChange }) => {
-    return <div className="form-fields">Formulario ICS-207 - En desarrollo</div>;
+const Form207 = ({ fields, onChange, incidentId }) => {
+    const [incidentData, setIncidentData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+    // Cargar datos del incidente (solo una vez al montar el componente)
+    useEffect(() => {
+        const loadIncidentData = async () => {
+            if (!incidentId || initialLoadDone) return;
+            
+            try {
+                setLoading(true);
+                
+                const incidentResponse = await fetch(`http://localhost:3310/api/incidents/${incidentId}`, {
+                    credentials: 'include'
+                });
+
+                if (!incidentResponse.ok) {
+                    throw new Error('Error al cargar incidente');
+                }
+
+                const incidentResult = await incidentResponse.json();
+                const incidentData = incidentResult.data;
+                setIncidentData(incidentData);
+
+                if (incidentData.incident_name && !fields.incident_name) {
+                    onChange('incident_name', incidentData.incident_name);
+                }
+
+                setInitialLoadDone(true);
+
+            } catch (error) {
+                console.error('Error al cargar datos del incidente:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadIncidentData();
+    }, [incidentId, onChange, initialLoadDone, fields.incident_name]);
+
+    const handleFieldChange = (field, value) => {
+        onChange(field, value);
+    };
+
+    const resourceTypes = [
+        'Personal',
+        'Vehículos',
+        'Equipos Médicos',
+        'Equipos de Rescate',
+        'Comunicaciones',
+        'Logística',
+        'Alimentación',
+        'Alojamiento',
+        'Combustible',
+        'Otros'
+    ];
+
+    const resourceStatusOptions = [
+        { value: 'disponible', label: 'Disponible' },
+        { value: 'en_uso', label: 'En Uso' },
+        { value: 'mantenimiento', label: 'En Mantenimiento' },
+        { value: 'baja', label: 'De Baja' }
+    ];
+
+    if (loading) {
+        return (
+            <div className="form-loading">
+                <div className="loading-spinner">🔄</div>
+                <p>Cargando datos del incidente...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="form-fields">
+            <div className="form-section">
+                <h3>📋 Información Básica del Incidente</h3>
+                
+                <div className="form-group">
+                    <label>Nombre del Incidente:</label>
+                    <input
+                        type="text"
+                        value={fields.incident_name || ''}
+                        onChange={(e) => handleFieldChange('incident_name', e.target.value)}
+                        required
+                        readOnly={!!incidentData?.incident_name}
+                        className={incidentData?.incident_name ? 'read-only-field' : ''}
+                    />
+                    {incidentData?.incident_name && (
+                        <small className="field-note">Cargado automáticamente desde el SCI</small>
+                    )}
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>🛠️ Detalles del Recurso</h3>
+                
+                <div className="form-group">
+                    <label>Tipo de Recurso:</label>
+                    <select
+                        value={fields.resource_type || ''}
+                        onChange={(e) => handleFieldChange('resource_type', e.target.value)}
+                        required
+                        className={fields.resource_type ? 'selected-field' : ''}
+                    >
+                        <option value="" disabled>Seleccionar tipo de recurso</option>
+                        {resourceTypes.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                        ))}
+                    </select>
+                    <small className="field-note">Selecciona el tipo de recurso que estás registrando</small>
+                </div>
+                
+                <div className="form-row">
+                    <div className="form-group half-width">
+                        <label>Cantidad:</label>
+                        <input
+                            type="number"
+                            value={fields.quantity || ''}
+                            onChange={(e) => handleFieldChange('quantity', e.target.value)}
+                            required
+                            min="1"
+                            placeholder="Ej: 5"
+                        />
+                    </div>
+                    
+                    <div className="form-group half-width">
+                        <label>Estado del Recurso:</label>
+                        <select
+                            value={fields.resource_status || ''}
+                            onChange={(e) => handleFieldChange('resource_status', e.target.value)}
+                            required
+                            className={fields.resource_status ? 'selected-field' : ''}
+                        >
+                            <option value="" disabled>Seleccionar estado</option>
+                            {resourceStatusOptions.map(status => (
+                                <option key={status.value} value={status.value}>
+                                    {status.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                
+                <div className="form-group">
+                    <label>Asignación/Ubicación:</label>
+                    <input
+                        type="text"
+                        value={fields.assignment || ''}
+                        onChange={(e) => handleFieldChange('assignment', e.target.value)}
+                        required
+                        placeholder="Ej: Base de operaciones, Unidad móvil, Hospital central..."
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Especificaciones del Recurso (Opcional):</label>
+                    <textarea
+                        value={fields.resource_specifications || ''}
+                        onChange={(e) => handleFieldChange('resource_specifications', e.target.value)}
+                        rows="2"
+                        placeholder="Descripción detallada del recurso, modelo, características..."
+                    />
+                </div>
+                
+                <div className="form-group">
+                    <label>Observaciones (Opcional):</label>
+                    <textarea
+                        value={fields.observations || ''}
+                        onChange={(e) => handleFieldChange('observations', e.target.value)}
+                        rows="2"
+                        placeholder="Notas adicionales sobre el recurso..."
+                    />
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📝 Información Adicional</h3>
+                
+                <div className="form-group">
+                    <label>Registrado por:</label>
+                    <input
+                        type="text"
+                        value={fields.created_by || ''}
+                        onChange={(e) => handleFieldChange('created_by', e.target.value)}
+                        placeholder="Nombre de quien registra el recurso"
+                    />
+                </div>
+            </div>
+
+            {/* Información de estado */}
+            <div className="status-info">
+                <h4>💡 Estados de Recursos</h4>
+                <div className="status-legends">
+                    <div className="status-legend">
+                        <span className="status-color disponible"></span>
+                        <span className="status-label">Disponible: Recurso listo para uso inmediato</span>
+                    </div>
+                    <div className="status-legend">
+                        <span className="status-color en_uso"></span>
+                        <span className="status-label">En Uso: Recurso actualmente asignado</span>
+                    </div>
+                    <div className="status-legend">
+                        <span className="status-color mantenimiento"></span>
+                        <span className="status-label">Mantenimiento: Recurso en reparación/revisión</span>
+                    </div>
+                    <div className="status-legend">
+                        <span className="status-color baja"></span>
+                        <span className="status-label">De Baja: Recurso no operativo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
-const Form208 = ({ fields, onChange }) => {
-    return <div className="form-fields">Formulario ICS-208 - En desarrollo</div>;
+const Form208 = ({ fields, onChange, incidentId }) => {
+    const [incidentData, setIncidentData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+    // Cargar datos del incidente (solo una vez al montar el componente)
+    useEffect(() => {
+        const loadIncidentData = async () => {
+            if (!incidentId || initialLoadDone) return;
+            
+            try {
+                setLoading(true);
+                
+                const incidentResponse = await fetch(`http://localhost:3310/api/incidents/${incidentId}`, {
+                    credentials: 'include'
+                });
+
+                if (!incidentResponse.ok) {
+                    throw new Error('Error al cargar incidente');
+                }
+
+                const incidentResult = await incidentResponse.json();
+                const incidentData = incidentResult.data;
+                setIncidentData(incidentData);
+
+                // Actualizar campos automáticamente SOLO si están vacíos
+                if (incidentData.incident_name && !fields.incident_name) {
+                    onChange('incident_name', incidentData.incident_name);
+                }
+
+                setInitialLoadDone(true);
+
+            } catch (error) {
+                console.error('Error al cargar datos del incidente:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadIncidentData();
+    }, [incidentId, onChange, initialLoadDone, fields.incident_name]);
+
+    const handleFieldChange = (field, value) => {
+        onChange(field, value);
+    };
+
+    if (loading) {
+        return (
+            <div className="form-loading">
+                <div className="loading-spinner">🔄</div>
+                <p>Cargando datos del incidente...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="form-fields">
+            <div className="form-section">
+                <h3>📊 Resumen de la Situación - ICS-208</h3>
+                
+                <div className="form-group">
+                    <label>Nombre del Incidente:</label>
+                    <input
+                        type="text"
+                        value={fields.incident_name || ''}
+                        onChange={(e) => handleFieldChange('incident_name', e.target.value)}
+                        required
+                        readOnly={!!incidentData?.incident_name}
+                        className={incidentData?.incident_name ? 'read-only-field' : ''}
+                    />
+                    {incidentData?.incident_name && (
+                        <small className="field-note">Cargado automáticamente desde el SCI</small>
+                    )}
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📝 Descripción del Incidente</h3>
+                
+                <div className="form-group">
+                    <label>Descripción Detallada del Incidente:</label>
+                    <textarea
+                        value={fields.incident_description || ''}
+                        onChange={(e) => handleFieldChange('incident_description', e.target.value)}
+                        required
+                        rows="5"
+                        placeholder="Describa detalladamente la situación actual del incidente, incluyendo causas, desarrollo y condiciones actuales..."
+                    />
+                    <small className="field-note">Incluya información sobre el origen, evolución y estado actual del incidente</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>🔄 Estado Actual</h3>
+                
+                <div className="form-group">
+                    <label>Situación Actual y Estado:</label>
+                    <textarea
+                        value={fields.current_status || ''}
+                        onChange={(e) => handleFieldChange('current_status', e.target.value)}
+                        required
+                        rows="4"
+                        placeholder="Describa la situación actual, progresos realizados, desafíos encontrados y estado general del incidente..."
+                    />
+                    <small className="field-note">Estado actual de las operaciones, progresos y principales desafíos</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>👥 Recursos Involucrados</h3>
+                
+                <div className="form-group">
+                    <label>Recursos Desplegados y Personal:</label>
+                    <textarea
+                        value={fields.involved_resources || ''}
+                        onChange={(e) => handleFieldChange('involved_resources', e.target.value)}
+                        required
+                        rows="4"
+                        placeholder="Liste todos los recursos humanos y materiales involucrados, incluyendo personal, equipos, vehículos y especialidades..."
+                    />
+                    <small className="field-note">Incluya cantidad de personal, equipos especializados, vehículos y otros recursos desplegados</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>🎯 Progreso de Objetivos</h3>
+                
+                <div className="form-group">
+                    <label>Progreso hacia Objetivos y Metas:</label>
+                    <textarea
+                        value={fields.objectives_progress || ''}
+                        onChange={(e) => handleFieldChange('objectives_progress', e.target.value)}
+                        required
+                        rows="4"
+                        placeholder="Describa el progreso alcanzado en los objetivos del incidente, metas cumplidas y próximos pasos..."
+                    />
+                    <small className="field-note">Evalúe el progreso en relación con los objetivos establecidos y las metas operacionales</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📋 Información Adicional</h3>
+                
+                <div className="form-group">
+                    <label>Notas Adicionales y Observaciones:</label>
+                    <textarea
+                        value={fields.additional_notes || ''}
+                        onChange={(e) => handleFieldChange('additional_notes', e.target.value)}
+                        rows="3"
+                        placeholder="Información adicional relevante, observaciones importantes, recomendaciones o aspectos destacables..."
+                    />
+                    <small className="field-note">Información complementaria que considere relevante para el resumen de situación</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>👤 Responsable del Informe</h3>
+                
+                <div className="form-group">
+                    <label>Preparado por:</label>
+                    <input
+                        type="text"
+                        value={fields.created_by || ''}
+                        onChange={(e) => handleFieldChange('created_by', e.target.value)}
+                        placeholder="Nombre y cargo de quien prepara el resumen"
+                    />
+                </div>
+            </div>
+
+            {/* Guía de llenado */}
+            <div className="form-guide">
+                <h4>💡 Guía para el Resumen de Situación (ICS-208)</h4>
+                <div className="guide-items">
+                    <div className="guide-item">
+                        <strong>Descripción del Incidente:</strong> Proporcione una visión general completa del incidente.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Estado Actual:</strong> Incluya situación operacional, progresos y desafíos.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Recursos:</strong> Detalle todos los recursos humanos y materiales desplegados.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Progreso:</strong> Evalúe el avance hacia los objetivos establecidos.
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const Form209 = ({ fields, onChange }) => {
