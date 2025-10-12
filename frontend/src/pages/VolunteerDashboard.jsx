@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './VolunteerDashboard.css';
+import FormRenderer from '../components/FormRenderer';
 
 const VolunteerDashboard = () => {
     const navigate = useNavigate();
@@ -16,7 +17,151 @@ const VolunteerDashboard = () => {
     const [assignmentsLoading, setAssignmentsLoading] = useState(true);
     const [user, setUser] = useState(null);
     const [showAssignmentsModal, setShowAssignmentsModal] = useState(false);
+  
 
+    // Definición de los formularios ICS
+    const icsForms = [
+        {
+            id: 'form201',
+            number: 'ICS-201',
+            name: 'Resumen de la Situación del Incidente',
+            description: 'Proporciona una visión general del incidente y la organización actual',
+            category: 'Planificación'
+        },
+        {
+            id: 'form202',
+            number: 'ICS-202',
+            name: 'Objetivos del Incidente',
+            description: 'Define los objetivos generales y específicos del incidente',
+            category: 'Planificación'
+        },
+        {
+            id: 'form203',
+            number: 'ICS-203',
+            name: 'Organización del Incidente',
+            description: 'Detalla la estructura organizacional del SCI',
+            category: 'Organización'
+        },
+        {
+            id: 'form204',
+            number: 'ICS-204',
+            name: 'Asignaciones Tácticas',
+            description: 'Asigna recursos y tareas específicas a las divisiones/grupos',
+            category: 'Operaciones'
+        },
+        {
+            id: 'form205',
+            number: 'ICS-205',
+            name: 'Plan de Comunicaciones',
+            description: 'Especifica frecuencias, canales y procedimientos de comunicación',
+            category: 'Logística'
+        },
+        {
+            id: 'form206',
+            number: 'ICS-206',
+            name: 'Plan Médico',
+            description: 'Detalla los procedimientos y recursos médicos',
+            category: 'Logística'
+        },
+        {
+            id: 'form207',
+            number: 'ICS-207',
+            name: 'Lista de Recursos',
+            description: 'Inventario de todos los recursos asignados al incidente',
+            category: 'Logística'
+        },
+        {
+            id: 'form208',
+            number: 'ICS-208',
+            name: 'Resumen de la Situación del Incidente',
+            description: 'Actualización del estado actual del incidente',
+            category: 'Planificación'
+        },
+        {
+            id: 'form209',
+            number: 'ICS-209',
+            name: 'Registro de Progreso',
+            description: 'Seguimiento del progreso hacia los objetivos',
+            category: 'Planificación'
+        },
+        {
+            id: 'form211',
+            number: 'ICS-211',
+            name: 'Registro de Entrada y Salida del Personal',
+            description: 'Control de ingreso y egreso del personal',
+            category: 'Finanzas'
+        },
+        {
+            id: 'form212',
+            number: 'ICS-212',
+            name: 'Registro de Seguridad',
+            description: 'Registro de incidentes de seguridad y medidas preventivas',
+            category: 'Seguridad'
+        },
+        {
+            id: 'form213',
+            number: 'ICS-213',
+            name: 'Registro de Comunicaciones',
+            description: 'Registro de todas las comunicaciones del incidente',
+            category: 'Logística'
+        },
+        {
+            id: 'form214',
+            number: 'ICS-214',
+            name: 'Registro de Actividades',
+            description: 'Registro detallado de actividades por unidad',
+            category: 'Operaciones'
+        },
+        {
+            id: 'form215',
+            number: 'ICS-215',
+            name: 'Registro de Logística',
+            description: 'Seguimiento de recursos logísticos y suministros',
+            category: 'Logística'
+        },
+        {
+            id: 'form216',
+            number: 'ICS-216',
+            name: 'Registro de Finanzas',
+            description: 'Control de costos y gastos del incidente',
+            category: 'Finanzas'
+        },
+        {
+            id: 'form217',
+            number: 'ICS-217',
+            name: 'Informe de Evaluación',
+            description: 'Evaluación post-incidente y análisis',
+            category: 'Planificación'
+        },
+        {
+            id: 'form218',
+            number: 'ICS-218',
+            name: 'Registro de Desmovilización de Recursos',
+            description: 'Control de liberación de recursos',
+            category: 'Logística'
+        },
+        {
+            id: 'form219',
+            number: 'ICS-219',
+            name: 'Informe de Desmovilización',
+            description: 'Plan de desmovilización del incidente',
+            category: 'Planificación'
+        },
+        {
+            id: 'form220',
+            number: 'ICS-220',
+            name: 'Registro de Lecciones Aprendidas',
+            description: 'Documentación de lecciones y mejoras',
+            category: 'Planificación'
+        },
+        {
+            id: 'form221',
+            number: 'ICS-221',
+            name: 'Verificación de Desmovilización',
+            description: 'Checklist final de desmovilización',
+            category: 'Logística'
+        }
+    ];
     // Cargar estadísticas y asignaciones al montar el componente
     useEffect(() => {
         fetchDashboardStats();
@@ -106,6 +251,34 @@ const VolunteerDashboard = () => {
             setAssignmentsLoading(false);
         }
     };
+
+    const handleFormSave = async (form, formData, incidentId) => {
+    try {
+        const response = await fetch(`http://localhost:3310/api/forms/${form.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                ...formData,
+                incident_id: incidentId
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Error al guardar formulario');
+        }
+
+        alert(`Formulario ${form.number} guardado exitosamente`);
+        return result.data;
+    } catch (error) {
+        console.error('Error al guardar formulario:', error);
+        throw error;
+    }
+};
 
     const getAssignmentTypeLabel = (type) => {
         const types = {
@@ -213,6 +386,44 @@ const VolunteerDashboard = () => {
     const handleCardClick = (path) => {
         navigate(path);
     };
+// Función para obtener formularios disponibles según el rol
+const getAvailableFormsForRole = (role) => {
+    const roleForms = {
+        'commander': ['201', '202', '203', '207', '208', '217', '220'],
+        'safety_officer': ['206', '212'],
+        'public_information_officer': ['201', '208', '213', '217'],
+        'liaison_officer': ['203', '213'],
+        'planning_chief': ['201', '202', '203', '204', '207', '208', '209', '214', '217', '220'],
+        'operations_chief': ['204', '205', '206', '214', '215', '218'],
+        'logistics_chief': ['205', '211', '213', '215', '216'],
+        'finance_chief': ['216', '218', '219', '221']
+    };
+
+    const formsForRole = roleForms[role] || [];
+    return icsForms.filter(form => {
+        const formNumber = form.number.replace('ICS-', '');
+        return formsForRole.includes(formNumber);
+    });
+};
+
+// Estado para controlar el formulario abierto
+const [selectedForm, setSelectedForm] = useState(null);
+const [selectedIncidentId, setSelectedIncidentId] = useState(null);
+
+// Función para abrir un formulario
+const handleOpenForm = (incidentId, form) => {
+    setSelectedIncidentId(incidentId);
+    setSelectedForm(form);
+    setShowAssignmentsModal(false);
+};
+
+// Función para cerrar el formulario
+const handleCloseForm = () => {
+    setSelectedForm(null);
+    setSelectedIncidentId(null);
+};
+
+
 
     return (
         <>
@@ -386,73 +597,70 @@ const VolunteerDashboard = () => {
                             <div className="modal-body">
                                 <div className="assignments-list">
                                     {assignments.map(assignment => (
-                                        <div key={assignment.id} className="assignment-modal-card">
-                                            <div className="assignment-modal-header">
-                                                <h3>{assignment.incident_name}</h3>
-                                                <div className="assignment-badges">
-                                                    <span 
-                                                        className="severity-badge"
-                                                        style={{ backgroundColor: getSeverityColor(assignment.severity_level) }}
-                                                    >
-                                                        {assignment.severity_level.toUpperCase()}
-                                                    </span>
-                                                    <span 
-                                                        className="status-badge"
-                                                        style={{ backgroundColor: getStatusColor(assignment.incident_status) }}
-                                                    >
-                                                        {assignment.incident_status}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="assignment-modal-details">
-                                                <div className="detail-row">
-                                                    <span className="detail-label">Tipo de Incidente:</span>
-                                                    <span className="detail-value">{assignment.incident_type}</span>
-                                                </div>
-                                                <div className="detail-row">
-                                                    <span className="detail-label">Mi Rol:</span>
-                                                    <span className="detail-value role">{getAssignmentTypeLabel(assignment.assignment_type)}</span>
-                                                </div>
-                                                <div className="detail-row">
-                                                    <span className="detail-label">Ubicación:</span>
-                                                    <span className="detail-value">{assignment.location}</span>
-                                                </div>
-                                                <div className="detail-row">
-                                                    <span className="detail-label">Fecha de Inicio:</span>
-                                                    <span className="detail-value">
-                                                        {new Date(assignment.start_date).toLocaleString('es-ES')}
-                                                    </span>
-                                                </div>
-                                                <div className="detail-row">
-                                                    <span className="detail-label">Duración Estimada:</span>
-                                                    <span className="detail-value">{assignment.estimated_duration || 'No especificada'}</span>
-                                                </div>
-                                                {assignment.description && (
-                                                    <div className="detail-row full-width">
-                                                        <span className="detail-label">Descripción:</span>
-                                                        <span className="detail-value description">{assignment.description}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="assignment-modal-footer">
-                                                <span className="assignment-date">
-                                                    Asignado el: {new Date(assignment.assignment_date).toLocaleDateString('es-ES')}
-                                                </span>
-                                                <button 
-                                                    className="view-incident-btn"
-                                                    onClick={() => {
-                                                        handleCloseModal();
-                                                        navigate('/volunteer/incidents');
-                                                    }}
+                                    <div key={assignment.id} className="assignment-modal-card">
+                                        <div className="assignment-modal-header">
+                                            <h3>{assignment.incident_name}</h3>
+                                            <div className="assignment-badges">
+                                                <span 
+                                                    className="severity-badge"
+                                                    style={{ backgroundColor: getSeverityColor(assignment.severity_level) }}
                                                 >
-                                                    Ver en Lista de Incidentes
-                                                </button>
+                                                    {assignment.severity_level.toUpperCase()}
+                                                </span>
+                                                <span 
+                                                    className="status-badge"
+                                                    style={{ backgroundColor: getStatusColor(assignment.incident_status) }}
+                                                >
+                                                    {assignment.incident_status}
+                                                </span>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                        
+                                        <div className="assignment-modal-details">
+                                            <div className="detail-row">
+                                                <span className="detail-label">Mi Rol:</span>
+                                                <span className="detail-value role">{getAssignmentTypeLabel(assignment.assignment_type)}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Ubicación:</span>
+                                                <span className="detail-value">{assignment.location}</span>
+                                            </div>
+                                            
+                                            {/* SECCIÓN NUEVA: Formularios disponibles */}
+                                            <div className="detail-row full-width">
+                                                <span className="detail-label">Formularios Disponibles:</span>
+                                                <div className="available-forms">
+                                                    {getAvailableFormsForRole(assignment.assignment_type).map(form => (
+                                                        <button
+                                                            key={form.id}
+                                                            className="form-button"
+                                                            onClick={() => handleOpenForm(assignment.incident_id, form)}
+                                                        >
+                                                            <span className="form-number">{form.number}</span>
+                                                            <span className="form-name">{form.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="assignment-modal-footer">
+                                            <span className="assignment-date">
+                                                Asignado el: {new Date(assignment.assignment_date).toLocaleDateString('es-ES')}
+                                            </span>
+                                            <button 
+                                                className="view-incident-btn"
+                                                onClick={() => {
+                                                    handleCloseModal();
+                                                    navigate('/volunteer/incidents');
+                                                }}
+                                            >
+                                                Ver en Lista de Incidentes
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                                                </div>
                             </div>
 
                             <div className="modal-footer">
@@ -466,6 +674,27 @@ const VolunteerDashboard = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Modal de Formulario */}
+{selectedForm && (
+    <div className="modal-overlay form-modal-overlay">
+        <div className="modal-content form-modal-content">
+            <div className="modal-header">
+                <h2>{selectedForm.number} - {selectedForm.name}</h2>
+                <button className="modal-close" onClick={handleCloseForm}>×</button>
+            </div>
+            
+            <div className="modal-body form-modal-body">
+                <FormRenderer 
+                    form={selectedForm}
+                    incidentId={selectedIncidentId}
+                    onClose={handleCloseForm}
+                    onSave={handleFormSave}
+                />
+            </div>
+        </div>
+    </div>
+)}
             </div>
         </>
     );
