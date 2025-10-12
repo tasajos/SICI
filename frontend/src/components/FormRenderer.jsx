@@ -63,7 +63,7 @@ const FormRenderer = ({ form, incidentId, onClose, onSave }) => {
             case 'form212':
                 return <Form212 fields={formData} onChange={handleInputChange} />;
             case 'form213':
-                return <Form213 fields={formData} onChange={handleInputChange} />;
+                return <Form213 fields={formData} onChange={handleInputChange} incidentId={incidentId} />;
             case 'form214':
                 return <Form214 fields={formData} onChange={handleInputChange} />;
             case 'form215':
@@ -77,7 +77,7 @@ const FormRenderer = ({ form, incidentId, onClose, onSave }) => {
             case 'form219':
                 return <Form219 fields={formData} onChange={handleInputChange} />;
             case 'form220':
-                return <Form220 fields={formData} onChange={handleInputChange} />;
+                return <Form220 fields={formData} onChange={handleInputChange} incidentId={incidentId} />;
             case 'form221':
                 return <Form221 fields={formData} onChange={handleInputChange} />;
             default:
@@ -1052,8 +1052,257 @@ const Form212 = ({ fields, onChange }) => {
     return <div className="form-fields">Formulario SCI-212 - En desarrollo</div>;
 };
 
-const Form213 = ({ fields, onChange }) => {
-    return <div className="form-fields">Formulario SCI-213 - En desarrollo</div>;
+const Form213 = ({ fields, onChange, incidentId }) => {
+    const [incidentData, setIncidentData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+    // Cargar datos del incidente
+    useEffect(() => {
+        const loadIncidentData = async () => {
+            if (!incidentId || initialLoadDone) return;
+            
+            try {
+                setLoading(true);
+                
+                const incidentResponse = await fetch(`http://localhost:3310/api/incidents/${incidentId}`, {
+                    credentials: 'include'
+                });
+
+                if (!incidentResponse.ok) {
+                    throw new Error('Error al cargar incidente');
+                }
+
+                const incidentResult = await incidentResponse.json();
+                const incidentData = incidentResult.data;
+                setIncidentData(incidentData);
+
+                // Actualizar campos automáticamente SOLO si están vacíos
+                if (incidentData.incident_name && !fields.incident_name) {
+                    onChange('incident_name', incidentData.incident_name);
+                }
+
+                setInitialLoadDone(true);
+
+            } catch (error) {
+                console.error('Error al cargar datos del incidente:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadIncidentData();
+    }, [incidentId, onChange, initialLoadDone, fields.incident_name]);
+
+    const handleFieldChange = (field, value) => {
+        onChange(field, value);
+    };
+
+    // Opciones predefinidas para canales de comunicación
+    const communicationChannels = [
+        'Radio VHF/UHF',
+        'Radio HF',
+        'Teléfono Satelital',
+        'Teléfono Móvil',
+        'Teléfono Fijo',
+        'Email',
+        'Sistema de Mensajería',
+        'Fax',
+        'Comunicación Cara a Cara',
+        'Sistema de Altavoces',
+        'Sirena/Alarma',
+        'Señales Manuales',
+        'Otro'
+    ];
+
+    if (loading) {
+        return (
+            <div className="form-loading">
+                <div className="loading-spinner">🔄</div>
+                <p>Cargando datos del incidente...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="form-fields">
+            <div className="form-section">
+                <h3>📞 Registro de Comunicaciones - ICS-213</h3>
+                
+                <div className="form-group">
+                    <label>Nombre del Incidente:</label>
+                    <input
+                        type="text"
+                        value={fields.incident_name || ''}
+                        onChange={(e) => handleFieldChange('incident_name', e.target.value)}
+                        required
+                        readOnly={!!incidentData?.incident_name}
+                        className={incidentData?.incident_name ? 'read-only-field' : ''}
+                    />
+                    {incidentData?.incident_name && (
+                        <small className="field-note">Cargado automáticamente desde el SCI</small>
+                    )}
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📅 Información de la Comunicación</h3>
+                
+                <div className="form-group">
+                    <label>Fecha y Hora de la Comunicación:</label>
+                    <input
+                        type="datetime-local"
+                        value={fields.record_date || ''}
+                        onChange={(e) => handleFieldChange('record_date', e.target.value)}
+                        required
+                    />
+                    <small className="field-note">Fecha y hora exacta en que se realizó la comunicación</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📡 Canal de Comunicación</h3>
+                
+                <div className="form-group">
+                    <label>Canal de Comunicación Utilizado:</label>
+                    <select
+                        value={fields.communication_channel || ''}
+                        onChange={(e) => handleFieldChange('communication_channel', e.target.value)}
+                        required
+                        className={fields.communication_channel ? 'selected-field' : ''}
+                    >
+                        <option value="" disabled>Seleccionar canal de comunicación</option>
+                        {communicationChannels.map(channel => (
+                            <option key={channel} value={channel}>{channel}</option>
+                        ))}
+                    </select>
+                    <small className="field-note">Seleccione el medio utilizado para la comunicación</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>👥 Participantes</h3>
+                
+                <div className="form-row">
+                    <div className="form-group half-width">
+                        <label>Remitente:</label>
+                        <input
+                            type="text"
+                            value={fields.sender || ''}
+                            onChange={(e) => handleFieldChange('sender', e.target.value)}
+                            required
+                            placeholder="Nombre, cargo y unidad del remitente"
+                        />
+                        <small className="field-note">Persona o entidad que envía el mensaje</small>
+                    </div>
+                    
+                    <div className="form-group half-width">
+                        <label>Destinatario:</label>
+                        <input
+                            type="text"
+                            value={fields.receiver || ''}
+                            onChange={(e) => handleFieldChange('receiver', e.target.value)}
+                            required
+                            placeholder="Nombre, cargo y unidad del destinatario"
+                        />
+                        <small className="field-note">Persona o entidad que recibe el mensaje</small>
+                    </div>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>💬 Contenido del Mensaje</h3>
+                
+                <div className="form-group">
+                    <label>Mensaje Transmitido:</label>
+                    <textarea
+                        value={fields.message || ''}
+                        onChange={(e) => handleFieldChange('message', e.target.value)}
+                        required
+                        rows="6"
+                        placeholder="Transcriba el mensaje completo y exacto que fue transmitido. Incluya toda la información relevante, instrucciones, reportes, solicitudes, etc..."
+                    />
+                    <small className="field-note">Transcriba el mensaje de manera completa y precisa</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📝 Información Adicional</h3>
+                
+                <div className="form-group">
+                    <label>Notas Adicionales:</label>
+                    <textarea
+                        value={fields.additional_notes || ''}
+                        onChange={(e) => handleFieldChange('additional_notes', e.target.value)}
+                        rows="4"
+                        placeholder="Información complementaria sobre la comunicación: calidad de la señal, dificultades técnicas, confirmación de recepción, acciones derivadas, contexto adicional, etc..."
+                    />
+                    <small className="field-note">Observaciones relevantes sobre la comunicación</small>
+                </div>
+
+                <div className="form-group">
+                    <label>Registrado por:</label>
+                    <input
+                        type="text"
+                        value={fields.created_by || ''}
+                        onChange={(e) => handleFieldChange('created_by', e.target.value)}
+                        placeholder="Nombre de quien registra la comunicación"
+                    />
+                    <small className="field-note">Persona responsable de documentar esta comunicación</small>
+                </div>
+            </div>
+
+            {/* Guía de llenado */}
+            <div className="form-guide">
+                <h4>💡 Guía para el Registro de Comunicaciones (ICS-213)</h4>
+                <div className="guide-items">
+                    <div className="guide-item">
+                        <strong>Mensaje:</strong> Transcriba el contenido exacto del mensaje, incluyendo instrucciones específicas y información crítica.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Participantes:</strong> Identifique claramente remitente y destinatario con nombres, cargos y unidades.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Canal:</strong> Especifique el medio de comunicación utilizado para rastreabilidad.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Hora:</strong> Registre la fecha y hora exactas para mantener una línea de tiempo precisa.
+                    </div>
+                </div>
+            </div>
+
+            {/* Plantilla de formato de mensaje */}
+            <div className="message-template">
+                <h4>📋 Formato Sugerido para Mensajes</h4>
+                <div className="template-examples">
+                    <div className="template-example">
+                        <h5>🗣️ Mensaje de Reporte</h5>
+                        <div className="message-format">
+                            <p><strong>De:</strong> [Remitente]</p>
+                            <p><strong>Para:</strong> [Destinatario]</p>
+                            <p><strong>Mensaje:</strong> "Reportando situación actual en [ubicación]. Condiciones: [descripción]. Recursos necesarios: [lista]. Próximas acciones: [plan]"</p>
+                        </div>
+                    </div>
+                    <div className="template-example">
+                        <h5>🔄 Mensaje de Solicitud</h5>
+                        <div className="message-format">
+                            <p><strong>De:</strong> [Remitente]</p>
+                            <p><strong>Para:</strong> [Destinatario]</p>
+                            <p><strong>Mensaje:</strong> "Solicito [recurso/acción] para [propósito]. Urgencia: [alta/media/baja]. Tiempo requerido: [fecha/hora]"</p>
+                        </div>
+                    </div>
+                    <div className="template-example">
+                        <h5>✅ Mensaje de Confirmación</h5>
+                        <div className="message-format">
+                            <p><strong>De:</strong> [Remitente]</p>
+                            <p><strong>Para:</strong> [Destinatario]</p>
+                            <p><strong>Mensaje:</strong> "Confirmo recepción de [instrucción/recurso]. Ejecutaré [acción] para [fecha/hora]. Requiero confirmación"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const Form214 = ({ fields, onChange }) => {
@@ -1300,8 +1549,226 @@ const Form219 = ({ fields, onChange }) => {
     return <div className="form-fields">Formulario SCI-219 - En desarrollo</div>;
 };
 
-const Form220 = ({ fields, onChange }) => {
-    return <div className="form-fields">Formulario SCI-220 - En desarrollo</div>;
+const Form220 = ({ fields, onChange, incidentId }) => {
+    const [incidentData, setIncidentData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+    // Cargar datos del incidente
+    useEffect(() => {
+        const loadIncidentData = async () => {
+            if (!incidentId || initialLoadDone) return;
+            
+            try {
+                setLoading(true);
+                
+                const incidentResponse = await fetch(`http://localhost:3310/api/incidents/${incidentId}`, {
+                    credentials: 'include'
+                });
+
+                if (!incidentResponse.ok) {
+                    throw new Error('Error al cargar incidente');
+                }
+
+                const incidentResult = await incidentResponse.json();
+                const incidentData = incidentResult.data;
+                setIncidentData(incidentData);
+
+                // Actualizar campos automáticamente SOLO si están vacíos
+                if (incidentData.incident_name && !fields.incident_name) {
+                    onChange('incident_name', incidentData.incident_name);
+                }
+
+                setInitialLoadDone(true);
+
+            } catch (error) {
+                console.error('Error al cargar datos del incidente:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadIncidentData();
+    }, [incidentId, onChange, initialLoadDone, fields.incident_name]);
+
+    const handleFieldChange = (field, value) => {
+        onChange(field, value);
+    };
+
+    if (loading) {
+        return (
+            <div className="form-loading">
+                <div className="loading-spinner">🔄</div>
+                <p>Cargando datos del incidente...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="form-fields">
+            <div className="form-section">
+                <h3>📚 Registro de Lecciones Aprendidas - SCI-220</h3>
+                
+                <div className="form-group">
+                    <label>Nombre del Incidente:</label>
+                    <input
+                        type="text"
+                        value={fields.incident_name || ''}
+                        onChange={(e) => handleFieldChange('incident_name', e.target.value)}
+                        required
+                        readOnly={!!incidentData?.incident_name}
+                        className={incidentData?.incident_name ? 'read-only-field' : ''}
+                    />
+                    {incidentData?.incident_name && (
+                        <small className="field-note">Cargado automáticamente desde el SCI</small>
+                    )}
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📅 Información del Registro</h3>
+                
+                <div className="form-group">
+                    <label>Fecha y Hora del Registro:</label>
+                    <input
+                        type="datetime-local"
+                        value={fields.record_date || ''}
+                        onChange={(e) => handleFieldChange('record_date', e.target.value)}
+                        required
+                    />
+                    <small className="field-note">Fecha en que se documenta la lección aprendida</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>🎯 Lección Aprendida</h3>
+                
+                <div className="form-group">
+                    <label>Descripción de la Lección Aprendida:</label>
+                    <textarea
+                        value={fields.learned_lesson || ''}
+                        onChange={(e) => handleFieldChange('learned_lesson', e.target.value)}
+                        required
+                        rows="5"
+                        placeholder="Describa detalladamente la lección aprendida, incluyendo la situación específica, lo que funcionó bien, lo que no funcionó, y el conocimiento adquirido..."
+                    />
+                    <small className="field-note">Sea específico y descriptivo sobre la experiencia y el aprendizaje obtenido</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📊 Impacto y Consecuencias</h3>
+                
+                <div className="form-group">
+                    <label>Impacto en la Operación:</label>
+                    <textarea
+                        value={fields.impact || ''}
+                        onChange={(e) => handleFieldChange('impact', e.target.value)}
+                        required
+                        rows="4"
+                        placeholder="Describa el impacto que tuvo esta lección en la operación, tanto positivo como negativo, incluyendo efectos en seguridad, eficiencia, costos, tiempos, etc..."
+                    />
+                    <small className="field-note">Evalúe las consecuencias y efectos de la lección aprendida</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>🔄 Implementación y Acciones</h3>
+                
+                <div className="form-group">
+                    <label>Acciones de Implementación:</label>
+                    <textarea
+                        value={fields.implementation || ''}
+                        onChange={(e) => handleFieldChange('implementation', e.target.value)}
+                        required
+                        rows="4"
+                        placeholder="Describa las acciones tomadas o propuestas para implementar esta lección aprendida, incluyendo cambios en procedimientos, capacitación, equipos, etc..."
+                    />
+                    <small className="field-note">Especifique cómo se implementará o se ha implementado esta lección</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>💡 Recomendaciones</h3>
+                
+                <div className="form-group">
+                    <label>Recomendaciones para Futuros Incidentes:</label>
+                    <textarea
+                        value={fields.recommendations || ''}
+                        onChange={(e) => handleFieldChange('recommendations', e.target.value)}
+                        required
+                        rows="4"
+                        placeholder="Proporcione recomendaciones específicas para mejorar procedimientos, capacitación, equipamiento, comunicación, etc., en futuros incidentes..."
+                    />
+                    <small className="field-note">Recomendaciones concretas y realizables para aplicar en el futuro</small>
+                </div>
+            </div>
+
+            <div className="form-section">
+                <h3>📝 Información Adicional</h3>
+                
+                <div className="form-group">
+                    <label>Notas Adicionales:</label>
+                    <textarea
+                        value={fields.additional_notes || ''}
+                        onChange={(e) => handleFieldChange('additional_notes', e.target.value)}
+                        rows="3"
+                        placeholder="Información complementaria, contexto adicional, observaciones relevantes, etc..."
+                    />
+                    <small className="field-note">Cualquier información adicional que considere importante</small>
+                </div>
+
+                <div className="form-group">
+                    <label>Registrado por:</label>
+                    <input
+                        type="text"
+                        value={fields.created_by || ''}
+                        onChange={(e) => handleFieldChange('created_by', e.target.value)}
+                        placeholder="Nombre y cargo de quien registra la lección"
+                    />
+                    <small className="field-note">Persona responsable de documentar la lección aprendida</small>
+                </div>
+            </div>
+
+            {/* Guía de llenado */}
+            <div className="form-guide">
+                <h4>💡 Guía para el Registro de Lecciones Aprendidas (ICS-220)</h4>
+                <div className="guide-items">
+                    <div className="guide-item">
+                        <strong>Lección Aprendida:</strong> Describa claramente qué se aprendió, en qué contexto y por qué es importante.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Impacto:</strong> Evalúe cómo esta lección afectó la operación y qué consecuencias tuvo.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Implementación:</strong> Especifique acciones concretas para aplicar el aprendizaje.
+                    </div>
+                    <div className="guide-item">
+                        <strong>Recomendaciones:</strong> Proponga mejoras específicas para incidentes futuros.
+                    </div>
+                </div>
+            </div>
+
+            {/* Ejemplos de lecciones aprendidas */}
+            <div className="examples-section">
+                <h4>📋 Ejemplos de Lecciones Aprendidas</h4>
+                <div className="examples-grid">
+                    <div className="example-card">
+                        <h5>✅ Ejemplo Positivo</h5>
+                        <p><strong>Situación:</strong> Comunicación efectiva durante evacuación</p>
+                        <p><strong>Lección:</strong> El uso de radios con canales predefinidos mejoró la coordinación en un 40%</p>
+                        <p><strong>Recomendación:</strong> Establecer protocolos de comunicación desde el inicio del incidente</p>
+                    </div>
+                    <div className="example-card">
+                        <h5>❌ Ejemplo de Mejora</h5>
+                        <p><strong>Situación:</strong> Falta de equipos de protección específicos</p>
+                        <p><strong>Lección:</strong> La ausencia de trajes químicos retrasó la respuesta inicial</p>
+                        <p><strong>Recomendación:</strong> Mantener inventario actualizado de equipos especializados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const Form221 = ({ fields, onChange }) => {

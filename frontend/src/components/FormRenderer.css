@@ -644,3 +644,246 @@ select::-ms-expand {
 .guide-text:last-child {
     margin-bottom: 0;
 }
+
+/* ===== ESTILOS PARA FORM 220 - LECCIONES APRENDIDAS ===== */
+.examples-section {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffecb3 100%);
+    border: 1px solid #ff9800;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.examples-section h4 {
+    margin-top: 0;
+    color: #e65100;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #ff9800;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.example-card {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.example-card h5 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.example-card p {
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #2c3e50;
+}
+
+.example-card strong {
+    color: #34495e;
+    font-weight: 600;
+}
+
+/* Colores específicos para ejemplos */
+.example-card:nth-child(1) {
+    border-left: 4px solid #4caf50;
+}
+
+.example-card:nth-child(1) h5 {
+    color: #4caf50;
+}
+
+.example-card:nth-child(2) {
+    border-left: 4px solid #f44336;
+}
+
+.example-card:nth-child(2) h5 {
+    color: #f44336;
+}
+
+/* ===== MEJORAS RESPONSIVE PARA FORM220 ===== */
+@media (max-width: 768px) {
+    .examples-section {
+        padding: 1rem;
+    }
+    
+    .examples-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .example-card {
+        padding: 1rem;
+    }
+    
+    .example-card p {
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== EFECTOS HOVER PARA EJEMPLOS ===== */
+.example-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ===== ESTILOS PARA FORM 213 - REGISTRO DE COMUNICACIONES ===== */
+.message-template {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+    border: 1px solid #4caf50;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.message-template h4 {
+    margin-top: 0;
+    color: #2e7d32;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #4caf50;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.template-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.template-example {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.template-example h5 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #388e3c;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e8f5e8;
+}
+
+.message-format {
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.message-format p {
+    margin: 0.5rem 0;
+    color: #2c3e50;
+}
+
+.message-format strong {
+    color: #34495e;
+    font-weight: 600;
+}
+
+/* Colores para diferentes tipos de mensajes */
+.template-example:nth-child(1) {
+    border-left: 4px solid #2196f3;
+}
+
+.template-example:nth-child(1) h5 {
+    color: #2196f3;
+}
+
+.template-example:nth-child(2) {
+    border-left: 4px solid #ff9800;
+}
+
+.template-example:nth-child(2) h5 {
+    color: #ff9800;
+}
+
+.template-example:nth-child(3) {
+    border-left: 4px solid #4caf50;
+}
+
+.template-example:nth-child(3) h5 {
+    color: #4caf50;
+}
+
+/* ===== MEJORAS PARA SELECTS ESPECÍFICOS ===== */
+.communication-channel-select {
+    background-color: #f8f9fa;
+    border: 2px solid #3498db;
+}
+
+.communication-channel-select:focus {
+    border-color: #2980b9;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* ===== ESTILOS PARA CAMPOS DE MENSAJE ===== */
+.message-textarea {
+    font-family: 'Courier New', monospace;
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+}
+
+.message-textarea:focus {
+    border-color: #3498db;
+    background-color: #ffffff;
+}
+
+/* ===== RESPONSIVE PARA FORM213 ===== */
+@media (max-width: 768px) {
+    .message-template {
+        padding: 1rem;
+    }
+    
+    .template-examples {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .template-example {
+        padding: 1rem;
+    }
+    
+    .message-format {
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== EFECTOS HOVER PARA PLANTILLAS ===== */
+.template-example:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== ESTILOS PARA PARTICIPANTES ===== */
+.participant-field {
+    background-color: #f0f8ff;
+    border: 1px solid #b3d9ff;
+}
+
+.participant-field:focus {
+    border-color: #3399ff;
+    background-color: #ffffff;
+}
