@@ -150,6 +150,36 @@ router.post('/create', async (req, res) => {
     }
 });
 
+router.get('/:id/assignments', async (req, res) => {
+    try {
+        const incidentId = req.params.id;
+        
+        const [assignments] = await pool.execute(`
+            SELECT 
+                ia.*,
+                u.full_name as user_full_name,
+                u.email as user_email
+            FROM incident_assignments ia
+            LEFT JOIN users u ON ia.user_id = u.id
+            WHERE ia.incident_id = ?
+            AND ia.status = 'active'
+            ORDER BY ia.assignment_type
+        `, [incidentId]);
+
+        res.json({
+            success: true,
+            data: assignments
+        });
+
+    } catch (error) {
+        console.error('Error al obtener asignaciones del incidente:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
 // GET /api/incidents - Obtener todos los incidentes
 router.get('/', async (req, res) => {
     if (!req.session.user) {
@@ -260,6 +290,47 @@ router.get('/', async (req, res) => {
         res.status(500).json({ 
             message: 'Error interno del servidor.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
+router.get('/:id/details', async (req, res) => {
+    try {
+        const incidentId = req.params.id;
+        
+        const [incidents] = await pool.execute(`
+            SELECT 
+                i.*,
+                commander_user.full_name as commander_name,
+                safety_user.full_name as safety_officer_name,
+                liaison_user.full_name as liaison_officer_name,
+                pio_user.full_name as public_information_officer_name
+            FROM incidents i
+            LEFT JOIN users commander_user ON i.commander = commander_user.id
+            LEFT JOIN users safety_user ON i.safety_officer = safety_user.id
+            LEFT JOIN users liaison_user ON i.liaison_officer = liaison_user.id
+            LEFT JOIN users pio_user ON i.public_information_officer = pio_user.id
+            WHERE i.id = ?
+        `, [incidentId]);
+
+        if (incidents.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Incidente no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: incidents[0]
+        });
+
+    } catch (error) {
+        console.error('Error al obtener detalles del incidente:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
         });
     }
 });

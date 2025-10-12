@@ -19,144 +19,144 @@ const VolunteerDashboard = () => {
     const [showAssignmentsModal, setShowAssignmentsModal] = useState(false);
   
 
-    // Definición de los formularios ICS
+    // Definición de los formularios SCI
     const icsForms = [
         {
             id: 'form201',
-            number: 'ICS-201',
+            number: 'SCI-201',
             name: 'Resumen de la Situación del Incidente',
             description: 'Proporciona una visión general del incidente y la organización actual',
             category: 'Planificación'
         },
         {
             id: 'form202',
-            number: 'ICS-202',
+            number: 'SCI-202',
             name: 'Objetivos del Incidente',
             description: 'Define los objetivos generales y específicos del incidente',
             category: 'Planificación'
         },
         {
             id: 'form203',
-            number: 'ICS-203',
+            number: 'SCI-203',
             name: 'Organización del Incidente',
             description: 'Detalla la estructura organizacional del SCI',
             category: 'Organización'
         },
         {
             id: 'form204',
-            number: 'ICS-204',
+            number: 'SCI-204',
             name: 'Asignaciones Tácticas',
             description: 'Asigna recursos y tareas específicas a las divisiones/grupos',
             category: 'Operaciones'
         },
         {
             id: 'form205',
-            number: 'ICS-205',
+            number: 'SCI-205',
             name: 'Plan de Comunicaciones',
             description: 'Especifica frecuencias, canales y procedimientos de comunicación',
             category: 'Logística'
         },
         {
             id: 'form206',
-            number: 'ICS-206',
+            number: 'SCI-206',
             name: 'Plan Médico',
             description: 'Detalla los procedimientos y recursos médicos',
             category: 'Logística'
         },
         {
             id: 'form207',
-            number: 'ICS-207',
+            number: 'SCI-207',
             name: 'Lista de Recursos',
             description: 'Inventario de todos los recursos asignados al incidente',
             category: 'Logística'
         },
         {
             id: 'form208',
-            number: 'ICS-208',
+            number: 'SCI-208',
             name: 'Resumen de la Situación del Incidente',
             description: 'Actualización del estado actual del incidente',
             category: 'Planificación'
         },
         {
             id: 'form209',
-            number: 'ICS-209',
+            number: 'SCI-209',
             name: 'Registro de Progreso',
             description: 'Seguimiento del progreso hacia los objetivos',
             category: 'Planificación'
         },
         {
             id: 'form211',
-            number: 'ICS-211',
+            number: 'SCI-211',
             name: 'Registro de Entrada y Salida del Personal',
             description: 'Control de ingreso y egreso del personal',
             category: 'Finanzas'
         },
         {
             id: 'form212',
-            number: 'ICS-212',
+            number: 'SCI-212',
             name: 'Registro de Seguridad',
             description: 'Registro de incidentes de seguridad y medidas preventivas',
             category: 'Seguridad'
         },
         {
             id: 'form213',
-            number: 'ICS-213',
+            number: 'SCI-213',
             name: 'Registro de Comunicaciones',
             description: 'Registro de todas las comunicaciones del incidente',
             category: 'Logística'
         },
         {
             id: 'form214',
-            number: 'ICS-214',
+            number: 'SCI-214',
             name: 'Registro de Actividades',
             description: 'Registro detallado de actividades por unidad',
             category: 'Operaciones'
         },
         {
             id: 'form215',
-            number: 'ICS-215',
+            number: 'SCI-215',
             name: 'Registro de Logística',
             description: 'Seguimiento de recursos logísticos y suministros',
             category: 'Logística'
         },
         {
             id: 'form216',
-            number: 'ICS-216',
+            number: 'SCI-216',
             name: 'Registro de Finanzas',
             description: 'Control de costos y gastos del incidente',
             category: 'Finanzas'
         },
         {
             id: 'form217',
-            number: 'ICS-217',
+            number: 'SCI-217',
             name: 'Informe de Evaluación',
             description: 'Evaluación post-incidente y análisis',
             category: 'Planificación'
         },
         {
             id: 'form218',
-            number: 'ICS-218',
+            number: 'SCI-218',
             name: 'Registro de Desmovilización de Recursos',
             description: 'Control de liberación de recursos',
             category: 'Logística'
         },
         {
             id: 'form219',
-            number: 'ICS-219',
+            number: 'SCI-219',
             name: 'Informe de Desmovilización',
             description: 'Plan de desmovilización del incidente',
             category: 'Planificación'
         },
         {
             id: 'form220',
-            number: 'ICS-220',
+            number: 'SCI-220',
             name: 'Registro de Lecciones Aprendidas',
             description: 'Documentación de lecciones y mejoras',
             category: 'Planificación'
         },
         {
             id: 'form221',
-            number: 'ICS-221',
+            number: 'SCI-221',
             name: 'Verificación de Desmovilización',
             description: 'Checklist final de desmovilización',
             category: 'Logística'
@@ -254,28 +254,50 @@ const VolunteerDashboard = () => {
 
     const handleFormSave = async (form, formData, incidentId) => {
     try {
+        // Preparar datos para enviar
+        const dataToSend = {
+            ...formData,
+            incident_id: incidentId
+        };
+
+        console.log('Enviando formulario:', {
+            formType: form.id,
+            data: dataToSend
+        });
+
         const response = await fetch(`http://localhost:3310/api/forms/${form.id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({
-                ...formData,
-                incident_id: incidentId
-            })
+            body: JSON.stringify(dataToSend)
         });
+
+        // Verificar si la respuesta es JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Respuesta no JSON:', text);
+            throw new Error('El servidor devolvió una respuesta no válida');
+        }
 
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.message || 'Error al guardar formulario');
+            throw new Error(result.message || `Error ${response.status}: ${response.statusText}`);
         }
 
-        alert(`Formulario ${form.number} guardado exitosamente`);
+        alert(`✅ Formulario ${form.number} guardado exitosamente`);
         return result.data;
+
     } catch (error) {
         console.error('Error al guardar formulario:', error);
+        
+        if (error.message.includes('Failed to fetch')) {
+            throw new Error('Error de conexión con el servidor. Verifique que el servidor esté ejecutándose.');
+        }
+        
         throw error;
     }
 };
@@ -401,7 +423,7 @@ const getAvailableFormsForRole = (role) => {
 
     const formsForRole = roleForms[role] || [];
     return icsForms.filter(form => {
-        const formNumber = form.number.replace('ICS-', '');
+        const formNumber = form.number.replace('SCI-', '');
         return formsForRole.includes(formNumber);
     });
 };
