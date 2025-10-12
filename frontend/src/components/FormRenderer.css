@@ -483,3 +483,164 @@ select::-ms-expand {
 .btn-cancel:hover {
     background-color: #7f8c8d;
 }
+
+
+/* ===== ESTILOS PARA FORM 217 - GUÍAS Y EVALUACIÓN ===== */
+/* ===== ESTILOS PARA FORM 217 - GUÍAS Y EVALUACIÓN ===== */
+.form-guide {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border: 1px solid #2196f3;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #2c3e50; /* Color de texto oscuro agregado */
+}
+
+.form-guide h4 {
+    margin-top: 0;
+    color: #1976d2;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #2196f3;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.guide-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.guide-item {
+    background: rgba(255, 255, 255, 0.9); /* Fondo más opaco */
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #2c3e50; /* Color de texto oscuro */
+}
+
+.guide-item strong {
+    color: #1976d2;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* ===== PLANTILLA DE EVALUACIÓN ===== */
+.evaluation-template {
+    background: linear-gradient(135deg, #f0f4ff 0%, #f8f9ff 100%);
+    border: 1px solid #5c6bc0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    color: #2c3e50; /* Color de texto oscuro agregado */
+}
+
+.evaluation-template h4 {
+    margin-top: 0;
+    color: #3949ab;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #5c6bc0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.template-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.template-section {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    color: #2c3e50; /* Color de texto oscuro */
+}
+
+.template-section h5 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: #5c6bc0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.template-section ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #2c3e50; /* Color de texto oscuro */
+}
+
+.template-section li {
+    margin-bottom: 0.4rem;
+    color: #34495e; /* Color más oscuro para mejor contraste */
+}
+
+.template-section li:last-child {
+    margin-bottom: 0;
+}
+
+/* ===== MEJORAS ESPECÍFICAS PARA CONTRASTE ===== */
+.guide-item,
+.template-section,
+.form-guide,
+.evaluation-template {
+    color: #2c3e50 !important; /* Fuerza color oscuro */
+}
+
+/* Asegurar que todo el texto dentro de estas secciones sea visible */
+.form-guide *:not(h4):not(strong),
+.evaluation-template *:not(h4):not(h5) {
+    color: #2c3e50 !important;
+}
+
+/* Color específico para párrafos y texto normal */
+.guide-item p,
+.evaluation-template p,
+.template-section p {
+    color: #2c3e50 !important;
+    margin: 0.5rem 0;
+}
+
+/* ===== RESPONSIVE MEJORADO ===== */
+@media (max-width: 768px) {
+    .form-guide,
+    .evaluation-template {
+        color: #2c3e50; /* Mantener color oscuro en móviles */
+    }
+    
+    .guide-item,
+    .template-section {
+        color: #2c3e50; /* Mantener color oscuro en móviles */
+    }
+}
+
+/* ===== GARANTIZAR LEGIBILIDAD EN TODOS LOS ELEMENTOS ===== */
+.form-guide div,
+.form-guide span,
+.form-guide p,
+.evaluation-template div,
+.evaluation-template span,
+.evaluation-template p {
+    color: #2c3e50 !important;
+}
+
+/* Estilo específico para el texto de la guía */
+.guide-text {
+    color: #2c3e50 !important;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.guide-text:last-child {
+    margin-bottom: 0;
+}
