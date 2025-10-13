@@ -66,6 +66,332 @@ const Monitoring = () => {
         }
     };
 
+    const openIncidentDetails = (incident) => {
+        // Abrir nueva ventana con los detalles del incidente
+        const incidentWindow = window.open('', `incident_${incident.id}`, 
+            'width=1200,height=800,scrollbars=yes,resizable=yes');
+        
+        if (incidentWindow) {
+            incidentWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Incidente: ${incident.incident_name}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            margin: 0; 
+                            padding: 20px; 
+                            background-color: #f5f5f5;
+                        }
+                        .container { 
+                            max-width: 1000px; 
+                            margin: 0 auto; 
+                            background: white; 
+                            padding: 20px; 
+                            border-radius: 10px; 
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        }
+                        .header { 
+                            display: flex; 
+                            justify-content: space-between; 
+                            align-items: center; 
+                            margin-bottom: 20px; 
+                            padding-bottom: 15px; 
+                            border-bottom: 2px solid #eee;
+                        }
+                        .incident-title { 
+                            color: #2c3e50; 
+                            margin: 0; 
+                            font-size: 24px;
+                        }
+                        .refresh-btn { 
+                            background: #3498db; 
+                            color: white; 
+                            border: none; 
+                            padding: 8px 16px; 
+                            border-radius: 5px; 
+                            cursor: pointer;
+                        }
+                        .section { 
+                            margin-bottom: 25px; 
+                            padding: 15px; 
+                            border: 1px solid #ddd; 
+                            border-radius: 8px;
+                        }
+                        .section h3 { 
+                            color: #2c3e50; 
+                            margin-top: 0; 
+                            border-bottom: 1px solid #eee; 
+                            padding-bottom: 8px;
+                        }
+                        .info-grid { 
+                            display: grid; 
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+                            gap: 10px; 
+                        }
+                        .info-item { 
+                            display: flex; 
+                            justify-content: space-between; 
+                            padding: 8px 0; 
+                            border-bottom: 1px solid #f0f0f0;
+                        }
+                        .info-item:last-child { border-bottom: none; }
+                        .info-label { font-weight: bold; color: #555; }
+                        .info-value { color: #333; }
+                        .personnel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+                        .personnel-card { padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #3498db; }
+                        .form-section { background: #e8f4fd; border-color: #3498db; }
+                        .loading { text-align: center; padding: 20px; color: #666; }
+                        .last-update { color: #888; font-size: 12px; text-align: right; margin-top: 10px; }
+                        .severity-high { border-left-color: #e74c3c !important; background: #fdf2f2; }
+                        .severity-medium { border-left-color: #f39c12 !important; background: #fef9e7; }
+                        .severity-low { border-left-color: #27ae60 !important; background: #f2fdf2; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1 class="incident-title">🚨 ${incident.incident_name}</h1>
+                            <button class="refresh-btn" onclick="refreshIncident()">🔄 Actualizar</button>
+                        </div>
+                        
+                        <div id="incident-content">
+                            <div class="loading">Cargando información del incidente...</div>
+                        </div>
+                    </div>
+
+                    <script>
+                        let refreshInterval;
+
+                        function refreshIncident() {
+                            loadIncidentData();
+                        }
+
+                        function loadIncidentData() {
+                            fetch('http://localhost:3310/api/incidents/${incident.id}', {
+                                credentials: 'include'
+                            })
+                            .then(response => response.json())
+                            .then(incidentData => {
+                                const incident = incidentData.data;
+                                renderIncidentDetails(incident);
+                                loadForm201(incident.id);
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                document.getElementById('incident-content').innerHTML = 
+                                    '<div class="error">Error al cargar los datos del incidente</div>';
+                            });
+                        }
+
+                        function loadForm201(incidentId) {
+                            fetch('http://localhost:3310/api/forms/incident/' + incidentId, {
+                                credentials: 'include'
+                            })
+                            .then(response => response.json())
+                            .then(formsData => {
+                                const form201 = formsData.data.find(form => form.form_type === 'form201');
+                                renderForm201(form201);
+                            })
+                            .catch(error => {
+                                console.error('Error al cargar formulario 201:', error);
+                                renderForm201(null);
+                            });
+                        }
+
+                        function renderIncidentDetails(incident) {
+                            const severityClass = getSeverityClass(incident.severity_level);
+                            
+                            document.getElementById('incident-content').innerHTML = \`
+                                <div class="section \${severityClass}">
+                                    <h3>📋 Información General del Incidente</h3>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Tipo:</span>
+                                            <span class="info-value">\${incident.incident_type || 'No especificado'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Severidad:</span>
+                                            <span class="info-value">\${incident.severity_level || 'No especificada'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Ubicación:</span>
+                                            <span class="info-value">\${incident.location || 'No especificada'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Fecha Inicio:</span>
+                                            <span class="info-value">\${formatDate(incident.start_date)}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Duración Estimada:</span>
+                                            <span class="info-value">\${incident.estimated_duration || 'No especificada'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Estado:</span>
+                                            <span class="info-value" style="color: \${getStatusColor(incident.status)}">\${incident.status}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="section">
+                                    <h3>📝 Descripción</h3>
+                                    <p>\${incident.description || 'No hay descripción disponible'}</p>
+                                </div>
+
+                                <div class="section">
+                                    <h3>👤 Comando del Incidente</h3>
+                                    <div class="personnel-grid">
+                                        \${renderPersonnelCard('Comandante', incident.commander_info)}
+                                        \${renderPersonnelCard('Oficial de Información Pública', incident.pio_info)}
+                                        \${renderPersonnelCard('Oficial de Enlaces', incident.lio_info)}
+                                        \${renderPersonnelCard('Oficial de Seguridad', incident.so_info)}
+                                    </div>
+                                </div>
+
+                                <div id="form201-section" class="section form-section">
+                                    <h3>📄 Formulario 201 - Resumen de Situación</h3>
+                                    <div class="loading">Cargando formulario 201...</div>
+                                </div>
+
+                                <div class="section">
+                                    <h3>📊 Información Adicional</h3>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Recursos Necesarios:</span>
+                                            <span class="info-value">\${incident.resources_needed || 'No especificados'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Contactos de Emergencia:</span>
+                                            <span class="info-value">\${incident.emergency_contacts || 'No especificados'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Creado por:</span>
+                                            <span class="info-value">\${incident.created_by_username || 'Sistema'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Última Actualización:</span>
+                                            <span class="info-value">\${formatDate(incident.updated_at || incident.created_at)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="last-update">
+                                    Actualizado: \${new Date().toLocaleTimeString('es-ES')}
+                                </div>
+                            \`;
+                        }
+
+                        function renderForm201(form201) {
+                            const formSection = document.getElementById('form201-section');
+                            
+                            if (!form201) {
+                                formSection.innerHTML = \`
+                                    <h3>📄 Formulario 201 - Resumen de Situación</h3>
+                                    <p>No se ha completado el Formulario 201 para este incidente.</p>
+                                \`;
+                                return;
+                            }
+
+                            formSection.innerHTML = \`
+                                <h3>📄 Formulario 201 - Resumen de Situación</h3>
+                                <div class="info-grid">
+                                    \${renderFormField('Situación Actual', form201.situacion_actual)}
+                                    \${renderFormField('Objetivos del Incidente', form201.objetivos_incidente)}
+                                    \${renderFormField('Recursos Desplegados', form201.recursos_desplegados)}
+                                    \${renderFormField('Lesiones/Bajas', form201.lesiones_bajas)}
+                                    \${renderFormField('Daños a Propiedad', form201.danos_propiedad)}
+                                    \${renderFormField('Acciones Inmediatas', form201.acciones_inmediatas)}
+                                    \${renderFormField('Pronóstico del Tiempo', form201.pronostico_tiempo)}
+                                    \${renderFormField('Comentarios Adicionales', form201.comentarios_adicionales)}
+                                </div>
+                                <div class="last-update">
+                                    Formulario actualizado: \${formatDate(form201.updated_at || form201.created_at)}
+                                </div>
+                            \`;
+                        }
+
+                        function renderFormField(label, value) {
+                            if (!value) return '';
+                            return \`
+                                <div class="info-item">
+                                    <span class="info-label">\${label}:</span>
+                                    <span class="info-value">\${value}</span>
+                                </div>
+                            \`;
+                        }
+
+                        function renderPersonnelCard(role, personnel) {
+                            if (!personnel || !personnel.name) {
+                                return \`
+                                    <div class="personnel-card">
+                                        <strong>\${role}</strong>
+                                        <div style="color: #e74c3c;">No asignado</div>
+                                    </div>
+                                \`;
+                            }
+
+                            return \`
+                                <div class="personnel-card">
+                                    <strong>\${role}</strong>
+                                    <div>\${personnel.name}</div>
+                                    <div style="color: #666; font-size: 0.9em;">
+                                        \${personnel.role}\${personnel.unit ? ' - ' + personnel.unit : ''}
+                                    </div>
+                                </div>
+                            \`;
+                        }
+
+                        function getSeverityClass(severity) {
+                            switch(severity?.toLowerCase()) {
+                                case 'alto': return 'severity-high';
+                                case 'medio': return 'severity-medium';
+                                case 'bajo': return 'severity-low';
+                                default: return '';
+                            }
+                        }
+
+                        function getStatusColor(status) {
+                            switch(status) {
+                                case 'activo': return '#e74c3c';
+                                case 'cerrado': return '#27ae60';
+                                case 'suspendido': return '#f39c12';
+                                default: return '#95a5a6';
+                            }
+                        }
+
+                        function formatDate(dateString) {
+                            if (!dateString) return 'No especificada';
+                            const date = new Date(dateString);
+                            return date.toLocaleDateString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+
+                        // Cargar datos iniciales
+                        loadIncidentData();
+
+                        // Configurar actualización automática cada 30 segundos
+                        refreshInterval = setInterval(loadIncidentData, 30000);
+
+                        // Limpiar intervalo cuando se cierre la ventana
+                        window.addEventListener('beforeunload', () => {
+                            if (refreshInterval) {
+                                clearInterval(refreshInterval);
+                            }
+                        });
+                    </script>
+                </body>
+                </html>
+            `);
+            incidentWindow.document.close();
+        }
+    };
+
     const getSeverityColor = (severity) => {
         switch (severity?.toLowerCase()) {
             case 'alto': return '#e74c3c';
@@ -182,7 +508,11 @@ const Monitoring = () => {
                     ) : (
                         <div className="incidents-grid">
                             {monitoringData.activeIncidents.map(incident => (
-                                <div key={incident.id} className="incident-card">
+                                <div 
+                                    key={incident.id} 
+                                    className="incident-card clickable-incident"
+                                    onClick={() => openIncidentDetails(incident)}
+                                >
                                     <div className="incident-header">
                                         <div className="incident-severity">
                                             <span 
@@ -247,37 +577,12 @@ const Monitoring = () => {
                                         )}
                                     </div>
 
-                                    {/* Personal Asignado */}
-                                    <div className="assigned-personnel">
-                                        <h4>👥 Personal Asignado</h4>
-                                        <div className="personnel-grid">
-                                            {incident.pio_info && (
-                                                <div className="personnel-item">
-                                                    <span className="personnel-role">Oficial de Información:</span>
-                                                    <span className="personnel-name">{incident.pio_info.name}</span>
-                                                </div>
-                                            )}
-                                            {incident.lio_info && (
-                                                <div className="personnel-item">
-                                                    <span className="personnel-role">Oficial de Enlaces:</span>
-                                                    <span className="personnel-name">{incident.lio_info.name}</span>
-                                                </div>
-                                            )}
-                                            {incident.so_info && (
-                                                <div className="personnel-item">
-                                                    <span className="personnel-role">Oficial de Seguridad:</span>
-                                                    <span className="personnel-name">{incident.so_info.name}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
                                     <div className="incident-footer">
                                         <div className="incident-id">
                                             ID: #{incident.id}
                                         </div>
-                                        <div className="incident-updated">
-                                            Actualizado: {new Date(incident.updated_at || incident.created_at).toLocaleTimeString('es-ES')}
+                                        <div className="click-hint">
+                                            👆 Haz clic para ver detalles completos
                                         </div>
                                     </div>
                                 </div>
