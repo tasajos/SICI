@@ -121,6 +121,15 @@ const AdminDashboard = () => {
             path: '/admin/users',
             color: '#16a085',
             icon: '👥'
+        },
+        {
+            id: 7,
+            title: '📡 Monitoreo en Tiempo Real',
+            description: 'Monitorea actividad del sistema, logs y rendimiento en tiempo real',
+            buttonText: 'Ir al Monitoreo',
+            path: '/admin/monitoring',
+            color: '#9b59b6',
+            icon: '📡'
         }
     ];
 
