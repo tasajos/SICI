@@ -235,11 +235,13 @@ const Monitoring = () => {
             `;
         };
 
+
+
         // Renderizar tab de Form 201
         const renderForm201Tab = () => {
     if (!form201) {
         return `
-            <div class="section form-section">
+            <div class="section form-201-section">
                 <h3>📄 Formulario 201 - Resumen de Situación</h3>
                 <p class="no-data">No se ha completado el Formulario 201 para este incidente.</p>
             </div>
@@ -249,27 +251,56 @@ const Monitoring = () => {
     const renderFormField = (label, value) => {
         if (!value) return '';
         return `
-            <div class="info-item">
-                <span class="info-label">${label}:</span>
-                <span class="info-value">${value}</span>
+            <div class="form-field-card">
+                <div class="form-field-label">${label}</div>
+                <div class="form-field-value">${value}</div>
             </div>
         `;
     };
 
     return `
-        <div class="section form-section">
+        <div class="section form-201-section">
             <h3>📄 Formulario 201 - Resumen de Situación</h3>
-            <div class="info-grid">
-                ${renderFormField('Comandante del Incidente', form201.incident_commander)}
-                ${renderFormField('Fecha del Incidente', formatDate(form201.incident_date))}
-                ${renderFormField('Ubicación', form201.form_location || form201.incident_location)}
-                ${renderFormField('Descripción del Incidente', form201.incident_description)}
-                ${renderFormField('Objetivos del Incidente', form201.incident_objectives)}
-                ${renderFormField('Acciones Tomadas', form201.actions_taken)}
-                ${renderFormField('Recursos Asignados', form201.assigned_resources)}
-                ${renderFormField('Notas Adicionales', form201.additional_notes)}
-                ${renderFormField('ID del Formulario', form201.form201_id)}
+            
+            <div class="form-content-grid">
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <h4>📋 Información Básica</h4>
+                    <div class="form-fields-grid">
+                        ${renderFormField('Comandante del Incidente', form201.incident_commander)}
+                        ${renderFormField('Fecha del Incidente', formatDate(form201.incident_date))}
+                        ${renderFormField('Ubicación', form201.form_location || form201.incident_location)}
+                    </div>
+                </div>
+
+                <!-- Descripción y Objetivos -->
+                <div class="form-section">
+                    <h4>🎯 Descripción y Objetivos</h4>
+                    <div class="form-fields-grid">
+                        ${renderFormField('Descripción del Incidente', form201.incident_description)}
+                        ${renderFormField('Objetivos del Incidente', form201.incident_objectives)}
+                    </div>
+                </div>
+
+                <!-- Acciones y Recursos -->
+                <div class="form-section">
+                    <h4>🛠️ Acciones y Recursos</h4>
+                    <div class="form-fields-grid">
+                        ${renderFormField('Acciones Tomadas', form201.actions_taken)}
+                        ${renderFormField('Recursos Asignados', form201.assigned_resources)}
+                    </div>
+                </div>
+
+                <!-- Información Adicional -->
+                <div class="form-section">
+                    <h4>📝 Información Adicional</h4>
+                    <div class="form-fields-grid">
+                        ${renderFormField('Notas Adicionales', form201.additional_notes)}
+                        ${renderFormField('ID del Formulario', form201.form201_id)}
+                    </div>
+                </div>
             </div>
+
             <div class="last-update">
                 Formulario actualizado: ${formatDate(form201.updated_at || form201.created_at)}
             </div>
@@ -367,6 +398,9 @@ const renderForm203Tab = () => {
         </div>
     `;
 };
+
+
+
 
         // Renderizar tab de detalles
         const renderDetailsTab = (incident) => {
