@@ -45,20 +45,27 @@ const IncidentList = () => {
     const fetchIncidentDetails = async (incidentId) => {
         try {
             setModalLoading(true);
+            console.log('Fetching details for incident:', incidentId);
+            
             const response = await fetch(`http://localhost:3310/api/incidents/${incidentId}`, {
                 method: 'GET',
                 credentials: 'include'
             });
 
             const result = await response.json();
+            console.log('Incident details response:', result);
 
             if (!response.ok) {
                 throw new Error(result.message || 'Error al cargar detalles del incidente');
             }
 
+            if (!result.data) {
+                throw new Error('No se encontraron datos del incidente');
+            }
+
             return result.data;
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching incident details:', error);
             throw error;
         } finally {
             setModalLoading(false);
@@ -102,11 +109,20 @@ const IncidentList = () => {
     };
 
     const handleViewDetails = async (incidentId) => {
+        console.log('View details clicked for incident:', incidentId);
         try {
             const incidentDetails = await fetchIncidentDetails(incidentId);
-            setSelectedIncident(incidentDetails);
-            setShowModal(true);
+            console.log('Incident details received:', incidentDetails);
+            
+            if (incidentDetails) {
+                setSelectedIncident(incidentDetails);
+                setShowModal(true);
+                console.log('Modal should be visible now');
+            } else {
+                throw new Error('No se pudieron cargar los detalles del incidente');
+            }
         } catch (error) {
+            console.error('Error in handleViewDetails:', error);
             alert(`Error al cargar detalles: ${error.message}`);
         }
     };
@@ -118,16 +134,16 @@ const IncidentList = () => {
 
     // Filtrar incidentes
     const filteredIncidents = incidents.filter(incident => {
-    const matchesSearch = 
-        incident.incident_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        incident.incident_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (incident.commander_display && incident.commander_display.toLowerCase().includes(searchTerm.toLowerCase()));
+        const matchesSearch = 
+            incident.incident_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            incident.incident_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            incident.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (incident.commander_display && incident.commander_display.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesStatus = statusFilter === 'todos' || incident.status === statusFilter;
+        const matchesStatus = statusFilter === 'todos' || incident.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-});
+        return matchesSearch && matchesStatus;
+    });
 
     const getStatusBadge = (status) => {
         const statusConfig = {
@@ -174,8 +190,12 @@ const IncidentList = () => {
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return date.toLocaleString('es-ES');
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-ES');
+        } catch (error) {
+            return 'Fecha inválida';
+        }
     };
 
     const formatText = (text) => {
@@ -290,65 +310,66 @@ const IncidentList = () => {
                             </button>
                         </div>
                     ) : (
-                        <table className="incidents-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre del Incidente</th>
-                                    <th>Tipo</th>
-                                    <th>Severidad</th>
-                                    <th>Comandante</th>
-                                    <th>Ubicación</th>
-                                    <th>Fecha Inicio</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-    {filteredIncidents.map(incident => (
-        <tr key={incident.id} className="incident-row">
-            <td className="incident-id">#{incident.id}</td>
-            <td className="incident-name">
-                <strong>{incident.incident_name}</strong>
-                <div className="incident-meta">
-                    Creado por: {incident.created_by_username || 'Sistema'}
-                </div>
-            </td>
-            <td>{incident.incident_type}</td>
-            <td>{getSeverityBadge(incident.severity_level)}</td>
-            <td className="commander-cell">
-                {incident.commander_display || 'No asignado'}
-            </td>
-            <td className="location-cell">{incident.location}</td>
-            <td>{formatDate(incident.start_date)}</td>
-            <td>{getStatusBadge(incident.status)}</td>
-            <td>
-                <div className="action-buttons-cell">
-                    <button 
-                        className="btn-view"
-                        onClick={() => handleViewDetails(incident.id)}
-                        title="Ver detalles completos"
-                    >
-                        👁️ Ver
-                    </button>
-                    
-                    {/* Selector de estado */}
-                    <select
-                        value={incident.status}
-                        onChange={(e) => handleStatusChange(incident.id, e.target.value)}
-                        className="status-select"
-                        title="Cambiar estado"
-                    >
-                        <option value="activo">Activo</option>
-                        <option value="suspendido">Suspendido</option>
-                        <option value="cerrado">Cerrado</option>
-                    </select>
-                </div>
-            </td>
-        </tr>
-    ))}
-</tbody>
-                        </table>
+                        <div className="table-wrapper">
+                            <table className="incidents-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre del Incidente</th>
+                                        <th>Tipo</th>
+                                        <th>Severidad</th>
+                                        <th>Comandante</th>
+                                        <th>Ubicación</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Estado</th>
+                                        <th className="options-column">Opciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredIncidents.map(incident => (
+                                        <tr key={incident.id} className="incident-row">
+                                            <td className="incident-id">#{incident.id}</td>
+                                            <td className="incident-name">
+                                                <strong>{incident.incident_name}</strong>
+                                                <div className="incident-meta">
+                                                    Creado por: {incident.created_by_username || 'Sistema'}
+                                                </div>
+                                            </td>
+                                            <td>{incident.incident_type}</td>
+                                            <td>{getSeverityBadge(incident.severity_level)}</td>
+                                            <td className="commander-cell">
+                                                {incident.commander_display || 'No asignado'}
+                                            </td>
+                                            <td className="location-cell">{incident.location}</td>
+                                            <td className="date-cell">{formatDate(incident.start_date)}</td>
+                                            <td className="status-cell">{getStatusBadge(incident.status)}</td>
+                                            <td className="options-cell">
+                                                <div className="options-buttons-cell">
+                                                    <button 
+                                                        className="btn-view"
+                                                        onClick={() => handleViewDetails(incident.id)}
+                                                        title="Ver detalles completos"
+                                                    >
+                                                        👁️ Ver
+                                                    </button>
+                                                    
+                                                    <select
+                                                        value={incident.status}
+                                                        onChange={(e) => handleStatusChange(incident.id, e.target.value)}
+                                                        className="status-select"
+                                                        title="Cambiar estado"
+                                                    >
+                                                        <option value="activo">Activo</option>
+                                                        <option value="suspendido">Suspendido</option>
+                                                        <option value="cerrado">Cerrado</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
 
@@ -414,72 +435,72 @@ const IncidentList = () => {
 
                                         {/* Estructura de Comando */}
                                         <div className="detail-section">
-    <h3>👥 Estructura de Comando</h3>
-    <div className="command-structure">
-        <div className="command-item">
-            <div className="command-role">Comandante del Incidente</div>
-            <div className="command-name">
-                {selectedIncident.commander_info ? (
-                    <div className="user-detail-info">
-                        <strong>{selectedIncident.commander_info.name}</strong>
-                        <span>Rol: {selectedIncident.commander_info.role}</span>
-                        <span>Unidad: {selectedIncident.commander_info.unit || 'Sin unidad'}</span>
-                    </div>
-                ) : (
-                    'No asignado'
-                )}
-            </div>
-        </div>
-        <div className="command-item">
-            <div className="command-role">Oficial de Información Pública</div>
-            <div className="command-name">
-                {selectedIncident.pio_info ? (
-                    <div className="user-detail-info">
-                        <strong>{selectedIncident.pio_info.name}</strong>
-                        <span>Rol: {selectedIncident.pio_info.role}</span>
-                        <span>Unidad: {selectedIncident.pio_info.unit || 'Sin unidad'}</span>
-                    </div>
-                ) : (
-                    'No asignado'
-                )}
-            </div>
-        </div>
-        <div className="command-item">
-            <div className="command-role">Oficial de Enlaces</div>
-            <div className="command-name">
-                {selectedIncident.lio_info ? (
-                    <div className="user-detail-info">
-                        <strong>{selectedIncident.lio_info.name}</strong>
-                        <span>Rol: {selectedIncident.lio_info.role}</span>
-                        <span>Unidad: {selectedIncident.lio_info.unit || 'Sin unidad'}</span>
-                    </div>
-                ) : (
-                    'No asignado'
-                )}
-            </div>
-        </div>
-        <div className="command-item">
-            <div className="command-role">Oficial de Seguridad</div>
-            <div className="command-name">
-                {selectedIncident.so_info ? (
-                    <div className="user-detail-info">
-                        <strong>{selectedIncident.so_info.name}</strong>
-                        <span>Rol: {selectedIncident.so_info.role}</span>
-                        <span>Unidad: {selectedIncident.so_info.unit || 'Sin unidad'}</span>
-                    </div>
-                ) : (
-                    'No asignado'
-                )}
-            </div>
-        </div>
-    </div>
-</div>
+                                            <h3>👥 Estructura de Comando</h3>
+                                            <div className="command-structure">
+                                                <div className="command-item">
+                                                    <div className="command-role">Comandante del Incidente</div>
+                                                    <div className="command-name">
+                                                        {selectedIncident.commander_info ? (
+                                                            <div className="user-detail-info">
+                                                                <strong>{selectedIncident.commander_info.name}</strong>
+                                                                <span>Rol: {selectedIncident.commander_info.role}</span>
+                                                                <span>Unidad: {selectedIncident.commander_info.unit || 'Sin unidad'}</span>
+                                                            </div>
+                                                        ) : (
+                                                            'No asignado'
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="command-item">
+                                                    <div className="command-role">Oficial de Información Pública</div>
+                                                    <div className="command-name">
+                                                        {selectedIncident.pio_info ? (
+                                                            <div className="user-detail-info">
+                                                                <strong>{selectedIncident.pio_info.name}</strong>
+                                                                <span>Rol: {selectedIncident.pio_info.role}</span>
+                                                                <span>Unidad: {selectedIncident.pio_info.unit || 'Sin unidad'}</span>
+                                                            </div>
+                                                        ) : (
+                                                            'No asignado'
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="command-item">
+                                                    <div className="command-role">Oficial de Enlaces</div>
+                                                    <div className="command-name">
+                                                        {selectedIncident.lio_info ? (
+                                                            <div className="user-detail-info">
+                                                                <strong>{selectedIncident.lio_info.name}</strong>
+                                                                <span>Rol: {selectedIncident.lio_info.role}</span>
+                                                                <span>Unidad: {selectedIncident.lio_info.unit || 'Sin unidad'}</span>
+                                                            </div>
+                                                        ) : (
+                                                            'No asignado'
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="command-item">
+                                                    <div className="command-role">Oficial de Seguridad</div>
+                                                    <div className="command-name">
+                                                        {selectedIncident.so_info ? (
+                                                            <div className="user-detail-info">
+                                                                <strong>{selectedIncident.so_info.name}</strong>
+                                                                <span>Rol: {selectedIncident.so_info.role}</span>
+                                                                <span>Unidad: {selectedIncident.so_info.unit || 'Sin unidad'}</span>
+                                                            </div>
+                                                        ) : (
+                                                            'No asignado'
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         {/* Descripción y Recursos */}
                                         <div className="detail-section">
                                             <h3>📝 Descripción del Incidente</h3>
                                             <div className="description-box">
-                                                {selectedIncident.description}
+                                                {selectedIncident.description || 'No hay descripción disponible'}
                                             </div>
                                         </div>
 
