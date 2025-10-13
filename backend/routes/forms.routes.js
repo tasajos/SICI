@@ -151,6 +151,69 @@ router.get('/form203-by-incident/:incidentName', async (req, res) => {
     }
 });
 
+
+// En tu archivo de rutas de forms (routes/forms.routes.js)
+router.get('/form201-by-incident/:incidentName', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    const incidentName = req.params.incidentName;
+
+    try {
+        const [results] = await pool.execute(`
+            SELECT 
+                f.id AS form201_id,
+                f.incident_name,
+                f.incident_date,
+                f.location AS form_location,
+                f.incident_commander,
+                f.incident_description,
+                f.actions_taken,
+                f.incident_objectives,
+                f.assigned_resources,
+                f.additional_notes,
+                f.created_by,
+                f.incident_id,
+                f.created_at,
+                f.updated_at,
+                i.id AS incident_id,
+                i.incident_type,
+                i.severity_level,
+                i.location AS incident_location,
+                i.description,
+                i.commander,
+                i.start_date,
+                i.estimated_duration
+            FROM form_201_resumen_situacion AS f
+            INNER JOIN incidents AS i 
+                ON f.incident_name = i.incident_name
+            WHERE f.incident_name = ?
+        `, [incidentName]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                message: 'Formulario 201 no encontrado para este incidente.',
+                data: null 
+            });
+        }
+
+        res.json({
+            message: 'Formulario 201 obtenido exitosamente',
+            data: results[0]
+        });
+
+    } catch (error) {
+        console.error('Error al obtener formulario 201:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
+
 // GET /api/forms/:formType/:id - Obtener formulario específico
 router.get('/:formType/:id', async (req, res) => {
     if (!req.session.user) {

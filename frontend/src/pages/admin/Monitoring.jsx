@@ -99,18 +99,21 @@ const Monitoring = () => {
         
         if (incidentWindow) {
             try {
-                // Cargar datos del Form 201
-                const form201Response = await fetch(`http://localhost:3310/api/forms/incident/${incident.id}`, {
-                    credentials: 'include'
-                });
-                
+                // Cargar datos del Form 201 por incident_name
                 let form201 = null;
-                if (form201Response.ok) {
-                    const form201Data = await form201Response.json();
-                    form201 = form201Data.data?.find(form => form.form_type === 'form201');
+                try {
+                    const form201Response = await fetch(`http://localhost:3310/api/forms/form201-by-incident/${encodeURIComponent(incident.incident_name)}`, {
+                        credentials: 'include'
+                    });
+                    if (form201Response.ok) {
+                        const form201Data = await form201Response.json();
+                        form201 = form201Data.data;
+                    }
+                } catch (error) {
+                    console.log('Form 201 no disponible:', error);
                 }
 
-                // Cargar datos del Form 203
+                // Cargar datos del Form 203 por incident_name
                 let form203 = null;
                 try {
                     const form203Response = await fetch(`http://localhost:3310/api/forms/form203-by-incident/${encodeURIComponent(incident.incident_name)}`, {
@@ -234,124 +237,136 @@ const Monitoring = () => {
 
         // Renderizar tab de Form 201
         const renderForm201Tab = () => {
-            if (!form201) {
-                return `
-                    <div class="section form-section">
-                        <h3>📄 Formulario 201 - Resumen de Situación</h3>
-                        <p class="no-data">No se ha completado el Formulario 201 para este incidente.</p>
-                    </div>
-                `;
-            }
+    if (!form201) {
+        return `
+            <div class="section form-section">
+                <h3>📄 Formulario 201 - Resumen de Situación</h3>
+                <p class="no-data">No se ha completado el Formulario 201 para este incidente.</p>
+            </div>
+        `;
+    }
 
-            const renderFormField = (label, value) => {
-                if (!value) return '';
-                return `
-                    <div class="info-item">
-                        <span class="info-label">${label}:</span>
-                        <span class="info-value">${value}</span>
-                    </div>
-                `;
-            };
+    const renderFormField = (label, value) => {
+        if (!value) return '';
+        return `
+            <div class="info-item">
+                <span class="info-label">${label}:</span>
+                <span class="info-value">${value}</span>
+            </div>
+        `;
+    };
 
-            return `
-                <div class="section form-section">
-                    <h3>📄 Formulario 201 - Resumen de Situación</h3>
-                    <div class="info-grid">
-                        ${renderFormField('Situación Actual', form201.situacion_actual)}
-                        ${renderFormField('Objetivos del Incidente', form201.objetivos_incidente)}
-                        ${renderFormField('Recursos Desplegados', form201.recursos_desplegados)}
-                        ${renderFormField('Lesiones/Bajas', form201.lesiones_bajas)}
-                        ${renderFormField('Daños a Propiedad', form201.danos_propiedad)}
-                        ${renderFormField('Acciones Inmediatas', form201.acciones_inmediatas)}
-                        ${renderFormField('Pronóstico del Tiempo', form201.pronostico_tiempo)}
-                        ${renderFormField('Comentarios Adicionales', form201.comentarios_adicionales)}
-                    </div>
-                    <div class="last-update">
-                        Formulario actualizado: ${formatDate(form201.updated_at || form201.created_at)}
-                    </div>
+    return `
+        <div class="section form-section">
+            <h3>📄 Formulario 201 - Resumen de Situación</h3>
+            <div class="info-grid">
+                ${renderFormField('Comandante del Incidente', form201.incident_commander)}
+                ${renderFormField('Fecha del Incidente', formatDate(form201.incident_date))}
+                ${renderFormField('Ubicación', form201.form_location || form201.incident_location)}
+                ${renderFormField('Descripción del Incidente', form201.incident_description)}
+                ${renderFormField('Objetivos del Incidente', form201.incident_objectives)}
+                ${renderFormField('Acciones Tomadas', form201.actions_taken)}
+                ${renderFormField('Recursos Asignados', form201.assigned_resources)}
+                ${renderFormField('Notas Adicionales', form201.additional_notes)}
+                ${renderFormField('ID del Formulario', form201.form201_id)}
+            </div>
+            <div class="last-update">
+                Formulario actualizado: ${formatDate(form201.updated_at || form201.created_at)}
+            </div>
+        </div>
+    `;
+};
+
+// En el método renderForm203Tab dentro de renderIncidentWindow
+const renderForm203Tab = () => {
+    if (!form203) {
+        return `
+            <div class="section form-203-section">
+                <h3>🏢 Formulario 203 - Organización del Incidente</h3>
+                <p class="no-data">No se ha completado el Formulario 203 para este incidente.</p>
+            </div>
+        `;
+    }
+
+    const renderFormField = (label, value) => {
+        if (!value) return '';
+        return `
+            <div class="info-item">
+                <span class="info-label">${label}:</span>
+                <span class="info-value">${value}</span>
+            </div>
+        `;
+    };
+
+    const renderOrganizationSection = (sectionTitle, roles) => {
+        const rolesHtml = roles.map(role => `
+            <div class="organization-card">
+                <div class="organization-role">${role.role}</div>
+                <div class="organization-details">
+                    <div><strong>Nombre:</strong> ${role.name || '<span class="no-data">No asignado</span>'}</div>
                 </div>
-            `;
-        };
+            </div>
+        `).join('');
 
-        // Renderizar tab de Form 203
-        const renderForm203Tab = () => {
-            if (!form203) {
-                return `
-                    <div class="section form-203-section">
-                        <h3>🏢 Formulario 203 - Organización del Incidente</h3>
-                        <p class="no-data">No se ha completado el Formulario 203 para este incidente.</p>
-                    </div>
-                `;
-            }
-
-            const renderFormField = (label, value) => {
-                if (!value) return '';
-                return `
-                    <div class="info-item">
-                        <span class="info-label">${label}:</span>
-                        <span class="info-value">${value}</span>
-                    </div>
-                `;
-            };
-
-            const renderOrganizationSection = (sectionTitle, roles) => {
-                const rolesHtml = roles.map(role => `
-                    <div class="organization-card">
-                        <div class="organization-role">${role.role}</div>
-                        <div class="organization-details">
-                            <div><strong>Nombre:</strong> ${role.name || '<span class="no-data">No asignado</span>'}</div>
-                        </div>
-                    </div>
-                `).join('');
-
-                return `
-                    <div>
-                        <h4>${sectionTitle}</h4>
-                        <div class="organization-grid">
-                            ${rolesHtml}
-                        </div>
-                    </div>
-                `;
-            };
-
-            return `
-                <div class="section form-203-section">
-                    <h3>🏢 Formulario 203 - Organización del Incidente</h3>
-                    
-                    <div class="organization-grid">
-                        <!-- Comando del Incidente -->
-                        ${renderOrganizationSection('Comando del Incidente', [
-                            { role: 'Comandante del Incidente', name: form203.incident_commander },
-                            { role: 'Oficial de Seguridad', name: form203.safety_officer },
-                            { role: 'Oficial de Enlaces', name: form203.liaison_officer },
-                            { role: 'Oficial de Información Pública', name: form203.public_information_officer }
-                        ])}
-                        
-                        <!-- Sección de Operaciones -->
-                        ${renderOrganizationSection('Sección de Operaciones', [
-                            { role: 'Jefe de Operaciones', name: form203.operations_chief }
-                        ])}
-                        
-                        <!-- Sección de Planificación -->
-                        ${renderOrganizationSection('Sección de Planificación', [
-                            { role: 'Jefe de Planificación', name: form203.planning_chief }
-                        ])}
-                    </div>
-
-                    <div style="margin-top: 20px;">
-                        <h4>Información Adicional</h4>
-                        <div class="info-grid">
-                            ${renderFormField('Fecha del Incidente', formatDate(form203.incident_date))}
-                            ${renderFormField('ID del Formulario', form203.form203_id)}
-                        </div>
-                    </div>
-
-                    <div class="last-update">
-                        Formulario actualizado: ${formatDate(form203.updated_at || form203.created_at)}
-                    </div>
+        return `
+            <div>
+                <h4>${sectionTitle}</h4>
+                <div class="organization-grid">
+                    ${rolesHtml}
                 </div>
-            `;
-        };
+            </div>
+        `;
+    };
+
+    // Construir las secciones basado en los campos disponibles
+    const commandRoles = [];
+    if (form203.incident_commander) {
+        commandRoles.push({ role: 'Comandante del Incidente', name: form203.incident_commander });
+    }
+    if (form203.safety_officer) {
+        commandRoles.push({ role: 'Oficial de Seguridad', name: form203.safety_officer });
+    }
+    if (form203.liaison_officer) {
+        commandRoles.push({ role: 'Oficial de Enlaces', name: form203.liaison_officer });
+    }
+    if (form203.public_information_officer) {
+        commandRoles.push({ role: 'Oficial de Información Pública', name: form203.public_information_officer });
+    }
+
+    const operationsRoles = [];
+    if (form203.operations_chief) {
+        operationsRoles.push({ role: 'Jefe de Operaciones', name: form203.operations_chief });
+    }
+
+    const planningRoles = [];
+    if (form203.planning_chief) {
+        planningRoles.push({ role: 'Jefe de Planificación', name: form203.planning_chief });
+    }
+
+    return `
+        <div class="section form-203-section">
+            <h3>🏢 Formulario 203 - Organización del Incidente</h3>
+            
+            <div class="organization-grid">
+                ${commandRoles.length > 0 ? renderOrganizationSection('Comando del Incidente', commandRoles) : ''}
+                ${operationsRoles.length > 0 ? renderOrganizationSection('Sección de Operaciones', operationsRoles) : ''}
+                ${planningRoles.length > 0 ? renderOrganizationSection('Sección de Planificación', planningRoles) : ''}
+            </div>
+
+            <div style="margin-top: 20px;">
+                <h4>Información Adicional</h4>
+                <div class="info-grid">
+                    ${renderFormField('Fecha del Incidente', formatDate(form203.incident_date))}
+                    ${renderFormField('ID del Formulario', form203.form203_id)}
+                </div>
+            </div>
+
+            <div class="last-update">
+                Formulario actualizado: ${formatDate(form203.updated_at || form203.created_at)}
+            </div>
+        </div>
+    `;
+};
 
         // Renderizar tab de detalles
         const renderDetailsTab = (incident) => {
@@ -475,6 +490,8 @@ const Monitoring = () => {
                     .organization-card { padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; }
                     .organization-role { font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
                     .organization-details { color: #555; font-size: 0.9em; }
+                    .tab-content { display: none; }
+                    .tab-content.active { display: block; }
                 </style>
             </head>
             <body>
@@ -547,7 +564,6 @@ const Monitoring = () => {
         window.document.close();
     };
 
-    // ... (resto del componente igual que antes)
     return (
         <>
             <Navbar />
@@ -672,8 +688,13 @@ const Monitoring = () => {
                                             <strong>🕐 Inicio:</strong>
                                             <span>{formatDate(incident.start_date)}</span>
                                         </div>
+                                        <div className="detail-item">
+                                            <strong>⏱️ Duración estimada:</strong>
+                                            <span>{incident.estimated_duration || 'No especificada'}</span>
+                                        </div>
                                     </div>
 
+                                    {/* Información del Comandante */}
                                     <div className="commander-section">
                                         <h4>👤 Comandante del Incidente</h4>
                                         {incident.commander_info ? (
@@ -713,6 +734,7 @@ const Monitoring = () => {
                     )}
                 </div>
 
+                {/* Información del sistema */}
                 <div className="system-info">
                     <h2>ℹ️ Información del Sistema</h2>
                     <div className="info-grid">
@@ -726,7 +748,16 @@ const Monitoring = () => {
                             <strong>Versión:</strong> SICI v1.0.0
                         </div>
                         <div className="info-item">
+                            <strong>Servidor:</strong> Node.js + Express
+                        </div>
+                        <div className="info-item">
+                            <strong>Base de Datos:</strong> MySQL
+                        </div>
+                        <div className="info-item">
                             <strong>Última Actualización:</strong> {monitoringData.lastUpdate.toLocaleTimeString('es-ES')}
+                        </div>
+                        <div className="info-item">
+                            <strong>Tiempo Activo:</strong> 15 días 8h 32m
                         </div>
                     </div>
                 </div>
