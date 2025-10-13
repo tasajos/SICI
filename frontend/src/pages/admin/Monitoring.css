@@ -521,13 +521,34 @@
 
 /* Sección de formularios */
 .form-201-section {
-    background: #e8f4fd;
-    border-color: #3498db;
+    background: #fff3cd;
+    border-color: #ffc107;
 }
 
 .form-203-section {
     background: #fff3cd;
     border-color: #ffc107;
+}
+
+/* Estilos para formularios consistentes */
+.form-201-section, 
+.form-203-section {
+    background: #fff3cd;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-201-section h3, 
+.form-203-section h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ffc107;
+    font-size: 1.3rem;
 }
 
 /* Grid principal del contenido del formulario */
@@ -779,4 +800,102 @@
 
 .form-field-value::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+}
+
+/* Estilos para formularios consistentes */
+.form-201-section, 
+.form-203-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-201-section h3, 
+.form-203-section h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+    font-size: 1.3rem;
+}
+
+/* Grid de organización para ambos formularios */
+.organization-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.organization-card {
+    padding: 15px;
+    /*background: #274461;*/
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.organization-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.organization-role {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.organization-details {
+    color: #555;
+    font-size: 0.9em;
+}
+
+/* Información adicional */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #555;
+}
+
+.info-value {
+    color: #333;
+}
+
+/* Estados de no datos */
+.no-data {
+    color: #888;
+    font-style: italic;
+}
+
+.last-update {
+    color: #888;
+    font-size: 12px;
+    text-align: right;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
 }

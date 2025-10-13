@@ -238,7 +238,7 @@ const Monitoring = () => {
 
 
         // Renderizar tab de Form 201
-        const renderForm201Tab = () => {
+       const renderForm201Tab = () => {
     if (!form201) {
         return `
             <div class="section form-201-section">
@@ -248,57 +248,71 @@ const Monitoring = () => {
         `;
     }
 
-    const renderFormField = (label, value) => {
-        if (!value) return '';
+    const renderOrganizationSection = (sectionTitle, fields) => {
+        const fieldsHtml = fields.map(field => `
+            <div class="organization-card">
+                <div class="organization-role">${field.label}</div>
+                <div class="organization-details">
+                    <div>${field.value || '<span class="no-data">No especificado</span>'}</div>
+                </div>
+            </div>
+        `).join('');
+
         return `
-            <div class="form-field-card">
-                <div class="form-field-label">${label}</div>
-                <div class="form-field-value">${value}</div>
+            <div>
+                <h4>${sectionTitle}</h4>
+                <div class="organization-grid">
+                    ${fieldsHtml}
+                </div>
             </div>
         `;
     };
+
+    // Construir las secciones basado en los campos disponibles
+    const basicInfoFields = [];
+    if (form201.incident_commander) {
+        basicInfoFields.push({ label: 'Comandante del Incidente', value: form201.incident_commander });
+    }
+    if (form201.incident_date) {
+        basicInfoFields.push({ label: 'Fecha del Incidente', value: formatDate(form201.incident_date) });
+    }
+    if (form201.form_location || form201.incident_location) {
+        basicInfoFields.push({ label: 'Ubicación', value: form201.form_location || form201.incident_location });
+    }
+
+    const descriptionFields = [];
+    if (form201.incident_description) {
+        descriptionFields.push({ label: 'Descripción del Incidente', value: form201.incident_description });
+    }
+    if (form201.incident_objectives) {
+        descriptionFields.push({ label: 'Objetivos del Incidente', value: form201.incident_objectives });
+    }
+
+    const actionsFields = [];
+    if (form201.actions_taken) {
+        actionsFields.push({ label: 'Acciones Tomadas', value: form201.actions_taken });
+    }
+    if (form201.assigned_resources) {
+        actionsFields.push({ label: 'Recursos Asignados', value: form201.assigned_resources });
+    }
+
+    const additionalFields = [];
+    if (form201.additional_notes) {
+        additionalFields.push({ label: 'Notas Adicionales', value: form201.additional_notes });
+    }
+    if (form201.form201_id) {
+        additionalFields.push({ label: 'ID del Formulario', value: form201.form201_id });
+    }
 
     return `
         <div class="section form-201-section">
             <h3>📄 Formulario 201 - Resumen de Situación</h3>
             
-            <div class="form-content-grid">
-                <!-- Información Básica -->
-                <div class="form-section">
-                    <h4>📋 Información Básica</h4>
-                    <div class="form-fields-grid">
-                        ${renderFormField('Comandante del Incidente', form201.incident_commander)}
-                        ${renderFormField('Fecha del Incidente', formatDate(form201.incident_date))}
-                        ${renderFormField('Ubicación', form201.form_location || form201.incident_location)}
-                    </div>
-                </div>
-
-                <!-- Descripción y Objetivos -->
-                <div class="form-section">
-                    <h4>🎯 Descripción y Objetivos</h4>
-                    <div class="form-fields-grid">
-                        ${renderFormField('Descripción del Incidente', form201.incident_description)}
-                        ${renderFormField('Objetivos del Incidente', form201.incident_objectives)}
-                    </div>
-                </div>
-
-                <!-- Acciones y Recursos -->
-                <div class="form-section">
-                    <h4>🛠️ Acciones y Recursos</h4>
-                    <div class="form-fields-grid">
-                        ${renderFormField('Acciones Tomadas', form201.actions_taken)}
-                        ${renderFormField('Recursos Asignados', form201.assigned_resources)}
-                    </div>
-                </div>
-
-                <!-- Información Adicional -->
-                <div class="form-section">
-                    <h4>📝 Información Adicional</h4>
-                    <div class="form-fields-grid">
-                        ${renderFormField('Notas Adicionales', form201.additional_notes)}
-                        ${renderFormField('ID del Formulario', form201.form201_id)}
-                    </div>
-                </div>
+            <div class="organization-grid">
+                ${basicInfoFields.length > 0 ? renderOrganizationSection('Información Básica', basicInfoFields) : ''}
+                ${descriptionFields.length > 0 ? renderOrganizationSection('Descripción y Objetivos', descriptionFields) : ''}
+                ${actionsFields.length > 0 ? renderOrganizationSection('Acciones y Recursos', actionsFields) : ''}
+                ${additionalFields.length > 0 ? renderOrganizationSection('Información Adicional', additionalFields) : ''}
             </div>
 
             <div class="last-update">
@@ -307,6 +321,8 @@ const Monitoring = () => {
         </div>
     `;
 };
+
+
 
 // En el método renderForm203Tab dentro de renderIncidentWindow
 const renderForm203Tab = () => {
@@ -467,6 +483,27 @@ const renderForm203Tab = () => {
                         border-radius: 10px; 
                         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     }
+
+                    .form-201-section, 
+            .form-203-section { 
+                background: #fff3cd; 
+                border-color: #ffc107; 
+                border: 1px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .form-201-section h3, 
+            .form-203-section h3 { 
+                color: #2c3e50; 
+                margin-top: 0; 
+                margin-bottom: 20px; 
+                padding-bottom: 10px; 
+                border-bottom: 2px solid #ffc107; 
+                font-size: 1.3rem; 
+            }
                     .header { 
                         display: flex; 
                         justify-content: space-between; 
