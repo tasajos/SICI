@@ -20,7 +20,7 @@ const Monitoring = () => {
         fetchActiveIncidents();
         const interval = setInterval(() => {
             fetchActiveIncidents();
-        }, 10000); // Actualizar cada 10 segundos
+        }, 10000);
 
         return () => clearInterval(interval);
     }, []);
@@ -39,12 +39,10 @@ const Monitoring = () => {
                 throw new Error('Error al cargar datos');
             }
 
-            // Filtrar incidentes activos
             const activeIncidents = (incidentsData.data || []).filter(incident => 
                 incident.status === 'activo'
             );
 
-            // Simular métricas del sistema
             const activeUsers = (usersData.data || []).filter(user => 
                 user.is_active
             ).length;
@@ -63,332 +61,6 @@ const Monitoring = () => {
         } catch (error) {
             console.error('Error al cargar datos de monitoreo:', error);
             setMonitoringData(prev => ({ ...prev, loading: false }));
-        }
-    };
-
-    const openIncidentDetails = (incident) => {
-        // Abrir nueva ventana con los detalles del incidente
-        const incidentWindow = window.open('', `incident_${incident.id}`, 
-            'width=1200,height=800,scrollbars=yes,resizable=yes');
-        
-        if (incidentWindow) {
-            incidentWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Incidente: ${incident.incident_name}</title>
-                    <style>
-                        body { 
-                            font-family: Arial, sans-serif; 
-                            margin: 0; 
-                            padding: 20px; 
-                            background-color: #f5f5f5;
-                        }
-                        .container { 
-                            max-width: 1000px; 
-                            margin: 0 auto; 
-                            background: white; 
-                            padding: 20px; 
-                            border-radius: 10px; 
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                        }
-                        .header { 
-                            display: flex; 
-                            justify-content: space-between; 
-                            align-items: center; 
-                            margin-bottom: 20px; 
-                            padding-bottom: 15px; 
-                            border-bottom: 2px solid #eee;
-                        }
-                        .incident-title { 
-                            color: #2c3e50; 
-                            margin: 0; 
-                            font-size: 24px;
-                        }
-                        .refresh-btn { 
-                            background: #3498db; 
-                            color: white; 
-                            border: none; 
-                            padding: 8px 16px; 
-                            border-radius: 5px; 
-                            cursor: pointer;
-                        }
-                        .section { 
-                            margin-bottom: 25px; 
-                            padding: 15px; 
-                            border: 1px solid #ddd; 
-                            border-radius: 8px;
-                        }
-                        .section h3 { 
-                            color: #2c3e50; 
-                            margin-top: 0; 
-                            border-bottom: 1px solid #eee; 
-                            padding-bottom: 8px;
-                        }
-                        .info-grid { 
-                            display: grid; 
-                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-                            gap: 10px; 
-                        }
-                        .info-item { 
-                            display: flex; 
-                            justify-content: space-between; 
-                            padding: 8px 0; 
-                            border-bottom: 1px solid #f0f0f0;
-                        }
-                        .info-item:last-child { border-bottom: none; }
-                        .info-label { font-weight: bold; color: #555; }
-                        .info-value { color: #333; }
-                        .personnel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-                        .personnel-card { padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #3498db; }
-                        .form-section { background: #e8f4fd; border-color: #3498db; }
-                        .loading { text-align: center; padding: 20px; color: #666; }
-                        .last-update { color: #888; font-size: 12px; text-align: right; margin-top: 10px; }
-                        .severity-high { border-left-color: #e74c3c !important; background: #fdf2f2; }
-                        .severity-medium { border-left-color: #f39c12 !important; background: #fef9e7; }
-                        .severity-low { border-left-color: #27ae60 !important; background: #f2fdf2; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1 class="incident-title">🚨 ${incident.incident_name}</h1>
-                            <button class="refresh-btn" onclick="refreshIncident()">🔄 Actualizar</button>
-                        </div>
-                        
-                        <div id="incident-content">
-                            <div class="loading">Cargando información del incidente...</div>
-                        </div>
-                    </div>
-
-                    <script>
-                        let refreshInterval;
-
-                        function refreshIncident() {
-                            loadIncidentData();
-                        }
-
-                        function loadIncidentData() {
-                            fetch('http://localhost:3310/api/incidents/${incident.id}', {
-                                credentials: 'include'
-                            })
-                            .then(response => response.json())
-                            .then(incidentData => {
-                                const incident = incidentData.data;
-                                renderIncidentDetails(incident);
-                                loadForm201(incident.id);
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                document.getElementById('incident-content').innerHTML = 
-                                    '<div class="error">Error al cargar los datos del incidente</div>';
-                            });
-                        }
-
-                        function loadForm201(incidentId) {
-                            fetch('http://localhost:3310/api/forms/incident/' + incidentId, {
-                                credentials: 'include'
-                            })
-                            .then(response => response.json())
-                            .then(formsData => {
-                                const form201 = formsData.data.find(form => form.form_type === 'form201');
-                                renderForm201(form201);
-                            })
-                            .catch(error => {
-                                console.error('Error al cargar formulario 201:', error);
-                                renderForm201(null);
-                            });
-                        }
-
-                        function renderIncidentDetails(incident) {
-                            const severityClass = getSeverityClass(incident.severity_level);
-                            
-                            document.getElementById('incident-content').innerHTML = \`
-                                <div class="section \${severityClass}">
-                                    <h3>📋 Información General del Incidente</h3>
-                                    <div class="info-grid">
-                                        <div class="info-item">
-                                            <span class="info-label">Tipo:</span>
-                                            <span class="info-value">\${incident.incident_type || 'No especificado'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Severidad:</span>
-                                            <span class="info-value">\${incident.severity_level || 'No especificada'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Ubicación:</span>
-                                            <span class="info-value">\${incident.location || 'No especificada'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Fecha Inicio:</span>
-                                            <span class="info-value">\${formatDate(incident.start_date)}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Duración Estimada:</span>
-                                            <span class="info-value">\${incident.estimated_duration || 'No especificada'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Estado:</span>
-                                            <span class="info-value" style="color: \${getStatusColor(incident.status)}">\${incident.status}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="section">
-                                    <h3>📝 Descripción</h3>
-                                    <p>\${incident.description || 'No hay descripción disponible'}</p>
-                                </div>
-
-                                <div class="section">
-                                    <h3>👤 Comando del Incidente</h3>
-                                    <div class="personnel-grid">
-                                        \${renderPersonnelCard('Comandante', incident.commander_info)}
-                                        \${renderPersonnelCard('Oficial de Información Pública', incident.pio_info)}
-                                        \${renderPersonnelCard('Oficial de Enlaces', incident.lio_info)}
-                                        \${renderPersonnelCard('Oficial de Seguridad', incident.so_info)}
-                                    </div>
-                                </div>
-
-                                <div id="form201-section" class="section form-section">
-                                    <h3>📄 Formulario 201 - Resumen de Situación</h3>
-                                    <div class="loading">Cargando formulario 201...</div>
-                                </div>
-
-                                <div class="section">
-                                    <h3>📊 Información Adicional</h3>
-                                    <div class="info-grid">
-                                        <div class="info-item">
-                                            <span class="info-label">Recursos Necesarios:</span>
-                                            <span class="info-value">\${incident.resources_needed || 'No especificados'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Contactos de Emergencia:</span>
-                                            <span class="info-value">\${incident.emergency_contacts || 'No especificados'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Creado por:</span>
-                                            <span class="info-value">\${incident.created_by_username || 'Sistema'}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Última Actualización:</span>
-                                            <span class="info-value">\${formatDate(incident.updated_at || incident.created_at)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="last-update">
-                                    Actualizado: \${new Date().toLocaleTimeString('es-ES')}
-                                </div>
-                            \`;
-                        }
-
-                        function renderForm201(form201) {
-                            const formSection = document.getElementById('form201-section');
-                            
-                            if (!form201) {
-                                formSection.innerHTML = \`
-                                    <h3>📄 Formulario 201 - Resumen de Situación</h3>
-                                    <p>No se ha completado el Formulario 201 para este incidente.</p>
-                                \`;
-                                return;
-                            }
-
-                            formSection.innerHTML = \`
-                                <h3>📄 Formulario 201 - Resumen de Situación</h3>
-                                <div class="info-grid">
-                                    \${renderFormField('Situación Actual', form201.situacion_actual)}
-                                    \${renderFormField('Objetivos del Incidente', form201.objetivos_incidente)}
-                                    \${renderFormField('Recursos Desplegados', form201.recursos_desplegados)}
-                                    \${renderFormField('Lesiones/Bajas', form201.lesiones_bajas)}
-                                    \${renderFormField('Daños a Propiedad', form201.danos_propiedad)}
-                                    \${renderFormField('Acciones Inmediatas', form201.acciones_inmediatas)}
-                                    \${renderFormField('Pronóstico del Tiempo', form201.pronostico_tiempo)}
-                                    \${renderFormField('Comentarios Adicionales', form201.comentarios_adicionales)}
-                                </div>
-                                <div class="last-update">
-                                    Formulario actualizado: \${formatDate(form201.updated_at || form201.created_at)}
-                                </div>
-                            \`;
-                        }
-
-                        function renderFormField(label, value) {
-                            if (!value) return '';
-                            return \`
-                                <div class="info-item">
-                                    <span class="info-label">\${label}:</span>
-                                    <span class="info-value">\${value}</span>
-                                </div>
-                            \`;
-                        }
-
-                        function renderPersonnelCard(role, personnel) {
-                            if (!personnel || !personnel.name) {
-                                return \`
-                                    <div class="personnel-card">
-                                        <strong>\${role}</strong>
-                                        <div style="color: #e74c3c;">No asignado</div>
-                                    </div>
-                                \`;
-                            }
-
-                            return \`
-                                <div class="personnel-card">
-                                    <strong>\${role}</strong>
-                                    <div>\${personnel.name}</div>
-                                    <div style="color: #666; font-size: 0.9em;">
-                                        \${personnel.role}\${personnel.unit ? ' - ' + personnel.unit : ''}
-                                    </div>
-                                </div>
-                            \`;
-                        }
-
-                        function getSeverityClass(severity) {
-                            switch(severity?.toLowerCase()) {
-                                case 'alto': return 'severity-high';
-                                case 'medio': return 'severity-medium';
-                                case 'bajo': return 'severity-low';
-                                default: return '';
-                            }
-                        }
-
-                        function getStatusColor(status) {
-                            switch(status) {
-                                case 'activo': return '#e74c3c';
-                                case 'cerrado': return '#27ae60';
-                                case 'suspendido': return '#f39c12';
-                                default: return '#95a5a6';
-                            }
-                        }
-
-                        function formatDate(dateString) {
-                            if (!dateString) return 'No especificada';
-                            const date = new Date(dateString);
-                            return date.toLocaleDateString('es-ES', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                        }
-
-                        // Cargar datos iniciales
-                        loadIncidentData();
-
-                        // Configurar actualización automática cada 30 segundos
-                        refreshInterval = setInterval(loadIncidentData, 30000);
-
-                        // Limpiar intervalo cuando se cierre la ventana
-                        window.addEventListener('beforeunload', () => {
-                            if (refreshInterval) {
-                                clearInterval(refreshInterval);
-                            }
-                        });
-                    </script>
-                </body>
-                </html>
-            `);
-            incidentWindow.document.close();
         }
     };
 
@@ -421,6 +93,461 @@ const Monitoring = () => {
         });
     };
 
+    const openIncidentDetails = async (incident) => {
+        const incidentWindow = window.open('', `incident_${incident.id}`, 
+            'width=1400,height=900,scrollbars=yes,resizable=yes');
+        
+        if (incidentWindow) {
+            try {
+                // Cargar datos del Form 201
+                const form201Response = await fetch(`http://localhost:3310/api/forms/incident/${incident.id}`, {
+                    credentials: 'include'
+                });
+                
+                let form201 = null;
+                if (form201Response.ok) {
+                    const form201Data = await form201Response.json();
+                    form201 = form201Data.data?.find(form => form.form_type === 'form201');
+                }
+
+                // Cargar datos del Form 203
+                let form203 = null;
+                try {
+                    const form203Response = await fetch(`http://localhost:3310/api/forms/form203-by-incident/${encodeURIComponent(incident.incident_name)}`, {
+                        credentials: 'include'
+                    });
+                    if (form203Response.ok) {
+                        const form203Data = await form203Response.json();
+                        form203 = form203Data.data;
+                    }
+                } catch (error) {
+                    console.log('Form 203 no disponible:', error);
+                }
+
+                renderIncidentWindow(incidentWindow, incident, form201, form203);
+            } catch (error) {
+                console.error('Error al cargar formularios:', error);
+                // Mostrar ventana sin formularios en caso de error
+                renderIncidentWindow(incidentWindow, incident, null, null);
+            }
+        }
+    };
+
+    const renderIncidentWindow = (window, incident, form201, form203) => {
+        // Función auxiliar para renderizar tarjeta de personal
+        const renderPersonnelCard = (role, personnel) => {
+            if (!personnel || !personnel.name) {
+                return `
+                    <div class="personnel-card">
+                        <strong>${role}</strong>
+                        <div style="color: #e74c3c;">No asignado</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="personnel-card">
+                    <strong>${role}</strong>
+                    <div>${personnel.name}</div>
+                    <div style="color: #666; font-size: 0.9em;">
+                        ${personnel.role}${personnel.unit ? ' - ' + personnel.unit : ''}
+                    </div>
+                </div>
+            `;
+        };
+
+        // Función auxiliar para obtener clase de severidad
+        const getSeverityClass = (severity) => {
+            switch(severity?.toLowerCase()) {
+                case 'alto': return 'severity-high';
+                case 'medio': return 'severity-medium';
+                case 'bajo': return 'severity-low';
+                default: return '';
+            }
+        };
+
+        // Función auxiliar para obtener color de estado
+        const getStatusColor = (status) => {
+            switch(status) {
+                case 'activo': return '#e74c3c';
+                case 'cerrado': return '#27ae60';
+                case 'suspendido': return '#f39c12';
+                default: return '#95a5a6';
+            }
+        };
+
+        // Renderizar tab de resumen
+        const renderOverviewTab = (incident) => {
+            const severityClass = getSeverityClass(incident.severity_level);
+            
+            return `
+                <div class="section ${severityClass}">
+                    <h3>📋 Información General del Incidente</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value">${incident.incident_type || 'No especificado'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Severidad:</span>
+                            <span class="info-value">${incident.severity_level || 'No especificada'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ubicación:</span>
+                            <span class="info-value">${incident.location || 'No especificada'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fecha Inicio:</span>
+                            <span class="info-value">${formatDate(incident.start_date)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Duración Estimada:</span>
+                            <span class="info-value">${incident.estimated_duration || 'No especificada'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Estado:</span>
+                            <span class="info-value" style="color: ${getStatusColor(incident.status)}">${incident.status}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📝 Descripción</h3>
+                    <p>${incident.description || 'No hay descripción disponible'}</p>
+                </div>
+
+                <div class="section">
+                    <h3>👤 Comando del Incidente</h3>
+                    <div class="personnel-grid">
+                        ${renderPersonnelCard('Comandante', incident.commander_info)}
+                        ${renderPersonnelCard('Oficial de Información Pública', incident.pio_info)}
+                        ${renderPersonnelCard('Oficial de Enlaces', incident.lio_info)}
+                        ${renderPersonnelCard('Oficial de Seguridad', incident.so_info)}
+                    </div>
+                </div>
+
+                <div class="last-update">
+                    Actualizado: ${new Date().toLocaleTimeString('es-ES')}
+                </div>
+            `;
+        };
+
+        // Renderizar tab de Form 201
+        const renderForm201Tab = () => {
+            if (!form201) {
+                return `
+                    <div class="section form-section">
+                        <h3>📄 Formulario 201 - Resumen de Situación</h3>
+                        <p class="no-data">No se ha completado el Formulario 201 para este incidente.</p>
+                    </div>
+                `;
+            }
+
+            const renderFormField = (label, value) => {
+                if (!value) return '';
+                return `
+                    <div class="info-item">
+                        <span class="info-label">${label}:</span>
+                        <span class="info-value">${value}</span>
+                    </div>
+                `;
+            };
+
+            return `
+                <div class="section form-section">
+                    <h3>📄 Formulario 201 - Resumen de Situación</h3>
+                    <div class="info-grid">
+                        ${renderFormField('Situación Actual', form201.situacion_actual)}
+                        ${renderFormField('Objetivos del Incidente', form201.objetivos_incidente)}
+                        ${renderFormField('Recursos Desplegados', form201.recursos_desplegados)}
+                        ${renderFormField('Lesiones/Bajas', form201.lesiones_bajas)}
+                        ${renderFormField('Daños a Propiedad', form201.danos_propiedad)}
+                        ${renderFormField('Acciones Inmediatas', form201.acciones_inmediatas)}
+                        ${renderFormField('Pronóstico del Tiempo', form201.pronostico_tiempo)}
+                        ${renderFormField('Comentarios Adicionales', form201.comentarios_adicionales)}
+                    </div>
+                    <div class="last-update">
+                        Formulario actualizado: ${formatDate(form201.updated_at || form201.created_at)}
+                    </div>
+                </div>
+            `;
+        };
+
+        // Renderizar tab de Form 203
+        const renderForm203Tab = () => {
+            if (!form203) {
+                return `
+                    <div class="section form-203-section">
+                        <h3>🏢 Formulario 203 - Organización del Incidente</h3>
+                        <p class="no-data">No se ha completado el Formulario 203 para este incidente.</p>
+                    </div>
+                `;
+            }
+
+            const renderFormField = (label, value) => {
+                if (!value) return '';
+                return `
+                    <div class="info-item">
+                        <span class="info-label">${label}:</span>
+                        <span class="info-value">${value}</span>
+                    </div>
+                `;
+            };
+
+            const renderOrganizationSection = (sectionTitle, roles) => {
+                const rolesHtml = roles.map(role => `
+                    <div class="organization-card">
+                        <div class="organization-role">${role.role}</div>
+                        <div class="organization-details">
+                            <div><strong>Nombre:</strong> ${role.name || '<span class="no-data">No asignado</span>'}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div>
+                        <h4>${sectionTitle}</h4>
+                        <div class="organization-grid">
+                            ${rolesHtml}
+                        </div>
+                    </div>
+                `;
+            };
+
+            return `
+                <div class="section form-203-section">
+                    <h3>🏢 Formulario 203 - Organización del Incidente</h3>
+                    
+                    <div class="organization-grid">
+                        <!-- Comando del Incidente -->
+                        ${renderOrganizationSection('Comando del Incidente', [
+                            { role: 'Comandante del Incidente', name: form203.incident_commander },
+                            { role: 'Oficial de Seguridad', name: form203.safety_officer },
+                            { role: 'Oficial de Enlaces', name: form203.liaison_officer },
+                            { role: 'Oficial de Información Pública', name: form203.public_information_officer }
+                        ])}
+                        
+                        <!-- Sección de Operaciones -->
+                        ${renderOrganizationSection('Sección de Operaciones', [
+                            { role: 'Jefe de Operaciones', name: form203.operations_chief }
+                        ])}
+                        
+                        <!-- Sección de Planificación -->
+                        ${renderOrganizationSection('Sección de Planificación', [
+                            { role: 'Jefe de Planificación', name: form203.planning_chief }
+                        ])}
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <h4>Información Adicional</h4>
+                        <div class="info-grid">
+                            ${renderFormField('Fecha del Incidente', formatDate(form203.incident_date))}
+                            ${renderFormField('ID del Formulario', form203.form203_id)}
+                        </div>
+                    </div>
+
+                    <div class="last-update">
+                        Formulario actualizado: ${formatDate(form203.updated_at || form203.created_at)}
+                    </div>
+                </div>
+            `;
+        };
+
+        // Renderizar tab de detalles
+        const renderDetailsTab = (incident) => {
+            return `
+                <div class="section">
+                    <h3>📊 Información Completa del Incidente</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">ID del Incidente:</span>
+                            <span class="info-value">#${incident.id}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Creado por:</span>
+                            <span class="info-value">${incident.created_by_username || 'Sistema'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fecha de Creación:</span>
+                            <span class="info-value">${formatDate(incident.created_at)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Última Actualización:</span>
+                            <span class="info-value">${formatDate(incident.updated_at || incident.created_at)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🛠️ Recursos y Contactos</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Recursos Necesarios:</span>
+                            <span class="info-value">${incident.resources_needed || 'No especificados'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Contactos de Emergencia:</span>
+                            <span class="info-value">${incident.emergency_contacts || 'No especificados'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="last-update">
+                    Actualizado: ${new Date().toLocaleTimeString('es-ES')}
+                </div>
+            `;
+        };
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Incidente: ${incident.incident_name}</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        margin: 0; 
+                        padding: 20px; 
+                        background-color: #f5f5f5;
+                    }
+                    .container { 
+                        max-width: 1300px; 
+                        margin: 0 auto; 
+                        background: white; 
+                        padding: 20px; 
+                        border-radius: 10px; 
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }
+                    .header { 
+                        display: flex; 
+                        justify-content: space-between; 
+                        align-items: center; 
+                        margin-bottom: 20px; 
+                        padding-bottom: 15px; 
+                        border-bottom: 2px solid #eee;
+                    }
+                    .incident-title { 
+                        color: #2c3e50; 
+                        margin: 0; 
+                        font-size: 24px;
+                    }
+                    .section { 
+                        margin-bottom: 25px; 
+                        padding: 15px; 
+                        border: 1px solid #ddd; 
+                        border-radius: 8px;
+                    }
+                    .section h3 { 
+                        color: #2c3e50; 
+                        margin-top: 0; 
+                        border-bottom: 1px solid #eee; 
+                        padding-bottom: 8px;
+                    }
+                    .info-grid { 
+                        display: grid; 
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+                        gap: 10px; 
+                    }
+                    .info-item { 
+                        display: flex; 
+                        justify-content: space-between; 
+                        padding: 8px 0; 
+                        border-bottom: 1px solid #f0f0f0;
+                    }
+                    .info-item:last-child { border-bottom: none; }
+                    .info-label { font-weight: bold; color: #555; }
+                    .info-value { color: #333; }
+                    .personnel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+                    .personnel-card { padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #3498db; }
+                    .form-section { background: #e8f4fd; border-color: #3498db; }
+                    .form-203-section { background: #fff3cd; border-color: #ffc107; }
+                    .last-update { color: #888; font-size: 12px; text-align: right; margin-top: 10px; }
+                    .severity-high { border-left-color: #e74c3c !important; background: #fdf2f2; }
+                    .severity-medium { border-left-color: #f39c12 !important; background: #fef9e7; }
+                    .severity-low { border-left-color: #27ae60 !important; background: #f2fdf2; }
+                    .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+                    .tab { padding: 10px 20px; cursor: pointer; border: none; background: none; font-size: 14px; }
+                    .tab.active { border-bottom: 3px solid #3498db; font-weight: bold; color: #3498db; }
+                    .no-data { color: #888; font-style: italic; text-align: center; padding: 20px; }
+                    .close-btn { background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; }
+                    .refresh-btn { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-right: 10px; }
+                    .organization-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+                    .organization-card { padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; }
+                    .organization-role { font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+                    .organization-details { color: #555; font-size: 0.9em; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1 class="incident-title">🚨 ${incident.incident_name}</h1>
+                        <div>
+                            <button class="close-btn" onclick="window.close()">✖ Cerrar</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <button class="tab active" onclick="showTab('overview')">📋 Resumen</button>
+                        <button class="tab" onclick="showTab('form201')">📄 Form 201</button>
+                        <button class="tab" onclick="showTab('form203')">🏢 Form 203</button>
+                        <button class="tab" onclick="showTab('details')">📊 Detalles</button>
+                    </div>
+                    
+                    <div id="overview" class="tab-content active">
+                        ${renderOverviewTab(incident)}
+                    </div>
+                    
+                    <div id="form201" class="tab-content">
+                        ${renderForm201Tab()}
+                    </div>
+                    
+                    <div id="form203" class="tab-content">
+                        ${renderForm203Tab()}
+                    </div>
+                    
+                    <div id="details" class="tab-content">
+                        ${renderDetailsTab(incident)}
+                    </div>
+                </div>
+
+                <script>
+                    function showTab(tabName) {
+                        // Ocultar todos los tabs
+                        document.querySelectorAll('.tab-content').forEach(tab => {
+                            tab.classList.remove('active');
+                        });
+                        
+                        // Mostrar el tab seleccionado
+                        document.getElementById(tabName).classList.add('active');
+                        
+                        // Actualizar tabs activos
+                        document.querySelectorAll('.tab').forEach(tab => {
+                            tab.classList.remove('active');
+                        });
+                        event.target.classList.add('active');
+                    }
+
+                    function formatDate(dateString) {
+                        if (!dateString) return 'No especificada';
+                        const date = new Date(dateString);
+                        return date.toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+                </script>
+            </body>
+            </html>
+        `;
+
+        window.document.write(htmlContent);
+        window.document.close();
+    };
+
+    // ... (resto del componente igual que antes)
     return (
         <>
             <Navbar />
@@ -545,13 +672,8 @@ const Monitoring = () => {
                                             <strong>🕐 Inicio:</strong>
                                             <span>{formatDate(incident.start_date)}</span>
                                         </div>
-                                        <div className="detail-item">
-                                            <strong>⏱️ Duración estimada:</strong>
-                                            <span>{incident.estimated_duration || 'No especificada'}</span>
-                                        </div>
                                     </div>
 
-                                    {/* Información del Comandante */}
                                     <div className="commander-section">
                                         <h4>👤 Comandante del Incidente</h4>
                                         {incident.commander_info ? (
@@ -591,7 +713,6 @@ const Monitoring = () => {
                     )}
                 </div>
 
-                {/* Información del sistema */}
                 <div className="system-info">
                     <h2>ℹ️ Información del Sistema</h2>
                     <div className="info-grid">
@@ -605,16 +726,7 @@ const Monitoring = () => {
                             <strong>Versión:</strong> SICI v1.0.0
                         </div>
                         <div className="info-item">
-                            <strong>Servidor:</strong> Node.js + Express
-                        </div>
-                        <div className="info-item">
-                            <strong>Base de Datos:</strong> MySQL
-                        </div>
-                        <div className="info-item">
                             <strong>Última Actualización:</strong> {monitoringData.lastUpdate.toLocaleTimeString('es-ES')}
-                        </div>
-                        <div className="info-item">
-                            <strong>Tiempo Activo:</strong> 15 días 8h 32m
                         </div>
                     </div>
                 </div>
