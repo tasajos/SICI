@@ -303,14 +303,18 @@ const VolunteerDashboard = () => {
 };
 
     const getAssignmentTypeLabel = (type) => {
-        const types = {
-            'commander': 'Comandante del Incidente',
-            'public_information_officer': 'Oficial de Información Pública',
-            'liaison_officer': 'Oficial de Enlaces',
-            'safety_officer': 'Oficial de Seguridad'
-        };
-        return types[type] || type;
+    const types = {
+        'commander': 'Comandante del Incidente',
+        'public_information_officer': 'Oficial de Información Pública',
+        'liaison_officer': 'Oficial de Enlaces',
+        'safety_officer': 'Oficial de Seguridad',
+        'operations_chief': 'Jefe de Operaciones',
+        'planning_chief': 'Jefe de Planificación',
+        'logistics_chief': 'Jefe de Logística',
+        'finance_chief': 'Jefe de Administración y Finanzas'
     };
+    return types[type] || type;
+};
 
     const getSeverityColor = (severity) => {
         const colors = {
@@ -641,7 +645,7 @@ const handleCloseForm = () => {
                                         <div className="assignment-modal-details">
                                             <div className="detail-row">
                                                 <span className="detail-label">Mi Rol:</span>
-                                                <span className="detail-value role">{getAssignmentTypeLabel(assignment.assignment_type)}</span>
+                                                <span className="detail-value role">{assignment.assignment_type_name || getAssignmentTypeLabel(assignment.assignment_type)}</span>
                                             </div>
                                             <div className="detail-row">
                                                 <span className="detail-label">Ubicación:</span>

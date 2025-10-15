@@ -152,30 +152,39 @@ router.post('/create', async (req, res) => {
 
 router.get('/:id/assignments', async (req, res) => {
     try {
-        const incidentId = req.params.id;
-        
         const [assignments] = await pool.execute(`
             SELECT 
                 ia.*,
-                u.full_name as user_full_name,
-                u.email as user_email
+                i.incident_name,
+                u.full_name,
+                u.username,
+                CASE 
+                    WHEN ia.assignment_type = 'commander' THEN 'Comandante del Incidente'
+                    WHEN ia.assignment_type = 'safety_officer' THEN 'Oficial de Seguridad'
+                    WHEN ia.assignment_type = 'liaison_officer' THEN 'Oficial de Enlace'
+                    WHEN ia.assignment_type = 'public_information_officer' THEN 'Oficial de Información Pública'
+                    WHEN ia.assignment_type = 'operations_chief' THEN 'Jefe de Operaciones'
+                    WHEN ia.assignment_type = 'planning_chief' THEN 'Jefe de Planificación'
+                    WHEN ia.assignment_type = 'logistics_chief' THEN 'Jefe de Logística'
+                    WHEN ia.assignment_type = 'finance_chief' THEN 'Jefe de Administración y Finanzas'  -- ✅ CORREGIDO
+                    ELSE ia.assignment_type
+                END as assignment_type_name
             FROM incident_assignments ia
-            LEFT JOIN users u ON ia.user_id = u.id
+            JOIN incidents i ON ia.incident_id = i.id
+            JOIN users u ON ia.user_id = u.id
             WHERE ia.incident_id = ?
-            AND ia.status = 'active'
-            ORDER BY ia.assignment_type
-        `, [incidentId]);
+            ORDER BY ia.assignment_date DESC
+        `, [req.params.id]);
 
         res.json({
-            success: true,
+            message: 'Asignaciones obtenidas exitosamente',
             data: assignments
         });
-
     } catch (error) {
-        console.error('Error al obtener asignaciones del incidente:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor'
+        console.error('Error al obtener asignaciones:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 });
@@ -597,7 +606,7 @@ async function updateIncidentAssignments(incidentId, roles) {
     try {
         // Primero, desactivar todas las asignaciones existentes para este incidente
         await pool.execute(
-            'UPDATE incident_assignments SET status = "cancelled", updated_at = CURRENT_TIMESTAMP WHERE incident_id = ?',
+            'UPDATE incident_assignments SET status = "canceled", updated_at = CURRENT_TIMESTAMP WHERE incident_id = ?',
             [incidentId]
         );
 
@@ -678,6 +687,103 @@ router.put('/:id/assignment-status', async (req, res) => {
 
     } catch (error) {
         console.error('Error al actualizar estado de asignación:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
+// PUT /api/incidents/:id/assignments/update - Actualizar asignaciones de incidente
+router.put('/:id/assignments/update', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    const incidentId = req.params.id;
+    const { assignments } = req.body;
+
+    console.log('📥 SOLICITUD DE ASIGNACIONES RECIBIDA:', {
+        incidentId,
+        assignments: assignments
+    });
+
+    if (!assignments || !Array.isArray(assignments)) {
+        return res.status(400).json({ 
+            message: 'Se requiere un array de asignaciones.' 
+        });
+    }
+
+    try {
+        // Verificar si el incidente existe
+        const [existingIncidents] = await pool.execute(
+            'SELECT id FROM incidents WHERE id = ?',
+            [incidentId]
+        );
+
+        if (existingIncidents.length === 0) {
+            return res.status(404).json({ message: 'Incidente no encontrado.' });
+        }
+
+        console.log(`🔄 Procesando ${assignments.length} asignaciones para incidente ${incidentId}`);
+
+        // ✅ CORREGIDO: usar "canceled" en lugar de "cancelled"
+        const [cancelResult] = await pool.execute(
+            'UPDATE incident_assignments SET status = "canceled", updated_at = CURRENT_TIMESTAMP WHERE incident_id = ?',
+            [incidentId]
+        );
+        
+        console.log(`✅ Asignaciones canceladas: ${cancelResult.affectedRows}`);
+
+        // Crear nuevas asignaciones
+        const newAssignments = assignments.map(assignment => [
+            assignment.user_id,
+            incidentId,
+            assignment.assignment_type,
+            'active'  // ✅ Este está correcto
+        ]);
+
+        console.log('📋 Nuevas asignaciones a insertar:', newAssignments);
+
+        if (newAssignments.length > 0) {
+            const placeholders = newAssignments.map(() => '(?, ?, ?, ?)').join(', ');
+            const values = newAssignments.flat();
+            
+            console.log('🚀 Ejecutando INSERT con valores:', values);
+            
+            const [insertResult] = await pool.execute(
+                `INSERT INTO incident_assignments 
+                 (user_id, incident_id, assignment_type, status) 
+                 VALUES ${placeholders}`,
+                values
+            );
+            
+            console.log(`✅ Asignaciones insertadas: ${insertResult.affectedRows}`);
+        }
+
+        // ✅ CORREGIDO: Verificar con el status correcto
+        const [verifyAssignments] = await pool.execute(
+            'SELECT * FROM incident_assignments WHERE incident_id = ? AND status = "active"',
+            [incidentId]
+        );
+
+        console.log(`🔍 Asignaciones activas verificadas: ${verifyAssignments.length}`);
+        console.log('📊 Detalles de asignaciones activas:', verifyAssignments);
+
+        res.json({
+            message: `Asignaciones actualizadas exitosamente: ${newAssignments.length} asignaciones registradas`,
+            data: {
+                incidentId,
+                assignmentsCount: newAssignments.length,
+                assignments: assignments,
+                verified: verifyAssignments.length,
+                verifiedDetails: verifyAssignments
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error al actualizar asignaciones:', error);
         res.status(500).json({ 
             message: 'Error interno del servidor.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined

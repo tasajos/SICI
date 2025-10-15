@@ -433,7 +433,18 @@ router.get('/my-assignments', async (req, res) => {
                 u.full_name as user_name,
                 u.unit_id,
                 un.name as unit_name,
-                creator.username as incident_creator
+                creator.username as incident_creator,
+                CASE 
+                    WHEN ia.assignment_type = 'commander' THEN 'Comandante del Incidente'
+                    WHEN ia.assignment_type = 'safety_officer' THEN 'Oficial de Seguridad'
+                    WHEN ia.assignment_type = 'liaison_officer' THEN 'Oficial de Enlace'
+                    WHEN ia.assignment_type = 'public_information_officer' THEN 'Oficial de Información Pública'
+                    WHEN ia.assignment_type = 'operations_chief' THEN 'Jefe de Operaciones'
+                    WHEN ia.assignment_type = 'planning_chief' THEN 'Jefe de Planificación'
+                    WHEN ia.assignment_type = 'logistics_chief' THEN 'Jefe de Logística'
+                    WHEN ia.assignment_type = 'finance_chief' THEN 'Jefe de Administración y Finanzas'  -- ✅ AGREGAR AQUÍ
+                    ELSE ia.assignment_type
+                END as assignment_type_name
             FROM incident_assignments ia
             JOIN incidents i ON ia.incident_id = i.id
             JOIN users u ON ia.user_id = u.id
@@ -450,6 +461,77 @@ router.get('/my-assignments', async (req, res) => {
 
     } catch (error) {
         console.error('Error al obtener asignaciones:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
+router.put('/:id/assignments/update', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    const incidentId = req.params.id;
+    const { assignments } = req.body;
+
+    if (!assignments || !Array.isArray(assignments)) {
+        return res.status(400).json({ 
+            message: 'Se requiere un array de asignaciones.' 
+        });
+    }
+
+    try {
+        // Verificar si el incidente existe
+        const [existingIncidents] = await pool.execute(
+            'SELECT id FROM incidents WHERE id = ?',
+            [incidentId]
+        );
+
+        if (existingIncidents.length === 0) {
+            return res.status(404).json({ message: 'Incidente no encontrado.' });
+        }
+
+        // Desactivar asignaciones existentes para este incidente
+        await pool.execute(
+            
+            'UPDATE incident_assignments SET status = "canceled", updated_at = CURRENT_TIMESTAMP WHERE incident_id = ?',
+            [incidentId]
+        );
+
+        // Crear nuevas asignaciones
+        const newAssignments = assignments.map(assignment => [
+            assignment.user_id,
+            incidentId,
+            assignment.assignment_type,
+            'active'
+        ]);
+
+        if (newAssignments.length > 0) {
+            const placeholders = newAssignments.map(() => '(?, ?, ?, ?)').join(', ');
+            const values = newAssignments.flat();
+            
+            await pool.execute(
+                `INSERT INTO incident_assignments 
+                 (user_id, incident_id, assignment_type, status) 
+                 VALUES ${placeholders}`,
+                values
+            );
+        }
+
+        res.json({
+            message: `Asignaciones actualizadas exitosamente: ${newAssignments.length} asignaciones registradas`,
+            data: {
+                incidentId,
+                assignmentsCount: newAssignments.length,
+                assignments: assignments
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar asignaciones:', error);
         res.status(500).json({ 
             message: 'Error interno del servidor.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
