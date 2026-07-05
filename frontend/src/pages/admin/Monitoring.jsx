@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './Monitoring.css';
 
 const Monitoring = () => {
@@ -636,8 +637,7 @@ const renderForm203Tab = () => {
     };
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Monitoreo en Tiempo Real">
             <div className="monitoring-page">
                 <div className="monitoring-header">
                     <h1>📡 Monitoreo del Sistema</h1>
@@ -833,7 +833,7 @@ const renderForm203Tab = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

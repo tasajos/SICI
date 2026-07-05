@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './UserManagement.css';
+import { notify, confirmDialog } from '../../utils/dialog';
 
 const UserManagement = () => {
     const navigate = useNavigate();
@@ -144,7 +146,7 @@ const UserManagement = () => {
         await fetchData();
         
         setShowModal(false);
-        alert(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
+        notify(editingUser ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente', { variant: 'success' });
         
     } catch (error) {
         console.error('Error:', error);
@@ -153,7 +155,7 @@ const UserManagement = () => {
 };
 
     const handleDeleteUser = async (userId) => {
-        if (window.confirm('¿Estás seguro de que deseas desactivar este usuario?')) {
+        if (await confirmDialog('¿Estás seguro de que deseas desactivar este usuario?', { variant: 'danger', confirmText: 'Desactivar' })) {
             try {
                 const response = await fetch(`http://localhost:3310/api/users/${userId}`, {
                     method: 'DELETE',
@@ -168,11 +170,11 @@ const UserManagement = () => {
 
                 // Actualizar la lista de usuarios
                 await fetchData();
-                alert('Usuario desactivado exitosamente');
+                notify('Usuario desactivado exitosamente', { variant: 'success' });
                 
             } catch (error) {
                 console.error('Error:', error);
-                alert(`Error: ${error.message}`);
+                notify(`Error: ${error.message}`, { variant: 'error' });
             }
         }
     };
@@ -196,11 +198,11 @@ const UserManagement = () => {
 
             // Actualizar la lista de usuarios
             await fetchData();
-            alert(`Usuario ${!currentStatus ? 'activado' : 'desactivado'} exitosamente`);
+            notify(`Usuario ${!currentStatus ? 'activado' : 'desactivado'} exitosamente`, { variant: 'success' });
             
         } catch (error) {
             console.error('Error:', error);
-            alert(`Error: ${error.message}`);
+            notify(`Error: ${error.message}`, { variant: 'error' });
         }
     };
 
@@ -221,18 +223,16 @@ const UserManagement = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Gestión de Usuarios">
                 <div className="user-management-container">
                     <div className="loading-spinner">Cargando usuarios...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Gestión de Usuarios">
             <div className="user-management-container">
                 <div className="um-header">
                     <button className="back-button" onClick={() => navigate('/admin')}>
@@ -535,7 +535,7 @@ const UserManagement = () => {
                     </div>
                 )}
             </div>
-        </>
+        </AppLayout>
     );
 };
 

@@ -1,14 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { VOLUNTEER_NAV } from '../../config/nav';
 
 const VolunteerMap = () => {
     const navigate = useNavigate();
 
     return (
-        <>
-            <Navbar />
-            <div style={{ 
+        <AppLayout navItems={VOLUNTEER_NAV} subtitle="Panel de Voluntario" title="Mapa Operativo">
+            <div style={{
                 padding: '2rem', 
                 textAlign: 'center',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -55,7 +55,7 @@ const VolunteerMap = () => {
                     </button>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

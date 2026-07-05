@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './CreateSCI.css';
+import { notify, confirmDialog } from '../../utils/dialog';
 
 const CreateSCI = () => {
     const navigate = useNavigate();
@@ -57,7 +59,7 @@ const CreateSCI = () => {
             setUsers(result.data || []);
         } catch (error) {
             console.error('Error al cargar usuarios:', error);
-            alert('Error al cargar la lista de usuarios');
+            notify('Error al cargar la lista de usuarios', { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -71,8 +73,8 @@ const CreateSCI = () => {
         }));
     };
 
-    const handleCancel = () => {
-        if (window.confirm('¿Estás seguro de que deseas cancelar? Los datos no guardados se perderán.')) {
+    const handleCancel = async () => {
+        if (await confirmDialog('¿Estás seguro de que deseas cancelar? Los datos no guardados se perderán.', { confirmText: 'Sí, cancelar', cancelText: 'Seguir editando' })) {
             navigate('/admin');
         }
     };
@@ -98,12 +100,12 @@ const CreateSCI = () => {
             }
 
             // Éxito
-            alert(`SCI creado exitosamente! ID: ${result.incidentId}`);
+            notify(`SCI creado exitosamente! ID: ${result.incidentId}`, { variant: 'success' });
             navigate('/admin');
             
         } catch (error) {
             console.error('Error al crear SCI:', error);
-            alert(`Error: ${error.message}`);
+            notify(`Error: ${error.message}`, { variant: 'error' });
         }
     };
 
@@ -120,18 +122,16 @@ const CreateSCI = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Crear SCI">
                 <div className="create-sci-container">
                     <div className="loading-spinner">Cargando usuarios...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Crear SCI">
             <div className="create-sci-container">
                 <div className="sci-header">
                     <button className="back-button" onClick={() => navigate('/admin')}>
@@ -402,7 +402,7 @@ const CreateSCI = () => {
                     </div>
                 </form>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

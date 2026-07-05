@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './FormRenderer.css';
+import { notify } from '../utils/dialog';
 
 // Importar componentes de formularios individuales
 import Form201 from '../Forms/Form201';
@@ -77,7 +78,7 @@ const FormRenderer = ({ form, incidentId, onClose, onSave }) => {
         onClose();
     } catch (error) {
         console.error('Error al guardar formulario:', error);
-        alert('Error al guardar el formulario');
+        notify('Error al guardar el formulario', { variant: 'error' });
     } finally {
         setSaving(false);
     }

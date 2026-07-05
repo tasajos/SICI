@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './SystemConfiguration.css';
 
 const SystemConfiguration = () => {
@@ -332,18 +333,16 @@ const SystemConfiguration = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Configuración del Sistema">
                 <div className="system-configuration-container">
                     <div className="loading-spinner">Cargando configuración...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Configuración del Sistema">
             <div className="system-configuration-container">
                 <div className="config-header">
                     <button className="back-button" onClick={() => navigate('/admin')}>
@@ -555,7 +554,7 @@ const SystemConfiguration = () => {
                     </button>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

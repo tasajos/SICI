@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { VOLUNTEER_NAV } from '../../config/nav';
 import './VolunteerIncidentList.css';
 
 const VolunteerIncidentList = () => {
@@ -116,18 +117,16 @@ const VolunteerIncidentList = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={VOLUNTEER_NAV} subtitle="Panel de Voluntario" title="Incidentes Activos">
                 <div className="volunteer-incident-list-container">
                     <div className="loading-spinner">Cargando incidentes...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={VOLUNTEER_NAV} subtitle="Panel de Voluntario" title="Incidentes Activos">
             <div className="volunteer-incident-list-container">
                 <div className="vil-header">
                     <button className="back-button" onClick={() => navigate('/volunteer')}>
@@ -260,7 +259,7 @@ const VolunteerIncidentList = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

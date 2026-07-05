@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './IncidentList.css';
+import { notify } from '../../utils/dialog';
 
 const IncidentList = () => {
     const navigate = useNavigate();
@@ -101,10 +103,10 @@ const IncidentList = () => {
                 setSelectedIncident(prev => ({ ...prev, status: newStatus }));
             }
 
-            alert(`Estado actualizado a: ${newStatus}`);
+            notify(`Estado actualizado a: ${newStatus}`, { variant: 'success' });
         } catch (error) {
             console.error('Error:', error);
-            alert(`Error: ${error.message}`);
+            notify(`Error: ${error.message}`, { variant: 'error' });
         }
     };
 
@@ -123,7 +125,7 @@ const IncidentList = () => {
             }
         } catch (error) {
             console.error('Error in handleViewDetails:', error);
-            alert(`Error al cargar detalles: ${error.message}`);
+            notify(`Error al cargar detalles: ${error.message}`, { variant: 'error' });
         }
     };
 
@@ -205,18 +207,16 @@ const IncidentList = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Gestión de Incidentes">
                 <div className="incident-list-container">
                     <div className="loading-spinner">Cargando incidentes...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Gestión de Incidentes">
             <div className="incident-list-container">
                 <div className="il-header">
                     <button className="back-button" onClick={() => navigate('/admin')}>
@@ -567,7 +567,7 @@ const IncidentList = () => {
                     </div>
                 )}
             </div>
-        </>
+        </AppLayout>
     );
 };
 

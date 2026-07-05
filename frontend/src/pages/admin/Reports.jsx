@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './Reports.css';
 
 const Reports = () => {
@@ -201,18 +202,16 @@ const Reports = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Reportes y Estadísticas">
                 <div className="reports-container">
                     <div className="loading-spinner">Cargando reportes...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Reportes y Estadísticas">
             <div className="reports-container">
                 <div className="reports-header">
                     <button className="back-button" onClick={() => navigate('/admin')}>
@@ -535,7 +534,7 @@ const Reports = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

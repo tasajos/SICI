@@ -1,98 +1,373 @@
 /*
  * SICI - Estilos para la Interfaz de Login
  * Archivo: LoginPage.css
+ * Diseño responsive de dos paneles (marca + formulario).
  */
 
-.login-container {
+.login-page {
+    --sici-red: #e74c3c;
+    --sici-red-dark: #c0392b;
+    --sici-navy: #2c3e50;
+    --sici-navy-2: #34495e;
+    --ink: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #dfe4ea;
+    --bg-soft: #f5f7fa;
+
     display: flex;
-    justify-content: center; /* Centrado horizontal */
-    align-items: center; /* Centrado vertical */
-    min-height: 100vh; /* Usa la altura total del contenedor padre (#root) */
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #1f2d3a 0%, #2c3e50 50%, #34495e 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--ink);
 }
 
-.login-box {
-    background-color: #ffffff;
-    padding: 50px 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+/* ===== Tarjeta principal (grid de 2 columnas) ===== */
+.login-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     width: 100%;
-    max-width: 420px;
+    max-width: 940px;
+    background: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    animation: card-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes card-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Panel de marca ===== */
+.login-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 44px 40px;
+    color: #fff;
+    background: linear-gradient(160deg, var(--sici-navy) 0%, var(--sici-navy-2) 100%);
+    overflow: hidden;
+}
+
+.login-brand::before {
+    /* Acento decorativo */
+    content: '';
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(231, 76, 60, 0.35), transparent 70%);
+    pointer-events: none;
+}
+
+.login-brand__content {
+    position: relative;
+    z-index: 1;
     text-align: center;
 }
 
-.login-logo {
-    width: 100%; /* Permite que ocupe todo el ancho de su contenedor (.login-box) */
-    max-width: 350px; /* Tamaño máximo para que no sea gigante */
+.login-brand__logo {
+    display: block;
+    width: 170px;
+    max-width: 65%;
     height: auto;
-    margin-bottom: 25px; /* Espacio entre el logo y el texto SICI */
-    display: block; /* Asegura que el margin: 0 auto funcione */
-    margin-left: auto;
-    margin-right: auto;
+    object-fit: contain;
+    margin: 0 auto 22px;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.4));
 }
 
-
-.login-title {
-    color: #e74c3c; /* Rojo de emergencia */
-    margin-bottom: 5px;
-    font-size: 28px;
-    font-weight: 700;
+.login-brand__title {
+    margin: 0 0 6px;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 2px;
 }
 
-.login-subtitle {
-    color: #7f8c8d;
-    margin-bottom: 40px;
-    font-size: 16px;
+.login-brand__tagline {
+    margin: 0 0 26px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.82);
 }
 
-.form-group {
-    margin-bottom: 20px;
+.login-brand__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    display: inline-grid;
+    justify-items: start;
+    text-align: left;
+    gap: 12px;
+}
+
+.login-brand__features li {
+    position: relative;
+    padding-left: 26px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.login-brand__features li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--sici-red);
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.2);
+}
+
+.login-brand__footer {
+    position: relative;
+    z-index: 1;
+    margin: 28px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== Panel de formulario ===== */
+.login-form-panel {
+    padding: 48px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-form-panel__logo {
+    display: none; /* Solo visible en móvil (ver media query) */
+    width: 140px;
+    height: auto;
+    margin: 0 auto 20px;
+}
+
+.login-form-panel__header {
+    margin-bottom: 28px;
     text-align: left;
 }
+
+.login-form-panel__header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.login-form-panel__header p {
+    margin: 0;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+/* ===== Formulario ===== */
+.form-group { margin-bottom: 20px; text-align: left; }
 
 .form-label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #34495e;
+    font-size: 14px;
+    color: var(--sici-navy-2);
 }
 
-.form-input, .form-select {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #bdc3c7;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 16px;
-    transition: border-color 0.3s;
+/* Selector de rol como pastillas */
+.role-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
 }
 
-.form-input:focus, .form-select:focus {
-    border-color: #e74c3c;
-    outline: none;
+.role-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 6px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
 }
 
-.login-button {
-    padding: 15px;
-    background-color: #e74c3c;
-    color: white;
+.role-option:hover { border-color: #cfd6df; transform: translateY(-1px); }
+
+.role-option.is-active {
+    border-color: var(--sici-red);
+    background: rgba(231, 76, 60, 0.06);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+}
+
+.role-option__icon { font-size: 20px; line-height: 1; }
+
+.role-option__label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--sici-navy-2);
+}
+
+/* Inputs con icono: contenedor flex con borde; icono y campo como items separados */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-soft);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--sici-red);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+}
+
+.input-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.form-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 13px 0;
     border: none;
+    background: transparent;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.form-input:focus { outline: none; }
+
+.form-input::placeholder { color: #aab2bd; }
+
+/* Toggle mostrar/ocultar contraseña */
+.password-toggle {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
     border-radius: 8px;
-    font-size: 18px;
+    transition: color 0.2s, background 0.2s;
+}
+
+.password-toggle:hover { color: var(--sici-navy-2); background: rgba(0, 0, 0, 0.05); }
+.password-toggle svg { width: 19px; height: 19px; }
+
+/* Mensaje de error */
+.error-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 11px 14px;
+    background: rgba(231, 76, 60, 0.08);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    border-radius: 10px;
+    color: var(--sici-red-dark);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.4;
+    animation: shake 0.4s ease;
+}
+
+.error-text svg { flex-shrink: 0; width: 18px; height: 18px; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Botón */
+.login-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 15px;
+    margin-top: 6px;
+    background: linear-gradient(135deg, var(--sici-red) 0%, var(--sici-red-dark) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 15px;
-    width: 100%;
+    box-shadow: 0 8px 18px rgba(231, 76, 60, 0.35);
+    transition: transform 0.12s, box-shadow 0.2s, opacity 0.2s;
 }
 
-.login-button:hover {
-    background-color: #c0392b;
+.login-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(231, 76, 60, 0.42);
 }
 
-.error-text {
-    color: #c0392b;
-    margin-bottom: 15px;
-    font-weight: 500;
+.login-button:active:not(:disabled) { transform: translateY(0); }
+
+.login-button:disabled { opacity: 0.75; cursor: not-allowed; }
+
+/* Spinner de carga */
+.spinner {
+    width: 17px;
+    height: 17px;
+    border: 2.5px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Responsive ===== */
+@media (max-width: 780px) {
+    .login-card {
+        grid-template-columns: 1fr;
+        max-width: 440px;
+    }
+
+    .login-brand { display: none; } /* Ocultamos panel de marca en móvil */
+
+    .login-form-panel { padding: 40px 28px; }
+
+    .login-form-panel__logo { display: block; }
+
+    .login-form-panel__header { text-align: center; }
+}
+
+@media (max-width: 400px) {
+    .login-page { padding: 14px; }
+    .login-form-panel { padding: 32px 20px; }
+    .role-option__label { font-size: 11.5px; }
+}
+
+/* Respeta usuarios que prefieren menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+    .login-card,
+    .error-text,
+    .spinner { animation: none; }
+    .login-button:hover:not(:disabled) { transform: none; }
 }

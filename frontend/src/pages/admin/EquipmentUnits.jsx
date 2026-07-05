@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { ADMIN_NAV } from '../../config/nav';
 import './EquipmentUnits.css';
+import { notify, confirmDialog } from '../../utils/dialog';
 
 const EquipmentUnits = () => {
     const navigate = useNavigate();
@@ -150,7 +152,7 @@ const EquipmentUnits = () => {
             await fetchData();
             
             setShowModal(false);
-            alert(editingUnit ? 'Unidad actualizada exitosamente' : 'Unidad creada exitosamente');
+            notify(editingUnit ? 'Unidad actualizada exitosamente' : 'Unidad creada exitosamente', { variant: 'success' });
             
         } catch (error) {
             console.error('Error:', error);
@@ -159,7 +161,7 @@ const EquipmentUnits = () => {
     };
 
     const handleDeleteUnit = async (unitId) => {
-        if (window.confirm('¿Estás seguro de que deseas desactivar esta unidad?')) {
+        if (await confirmDialog('¿Estás seguro de que deseas desactivar esta unidad?', { variant: 'danger', confirmText: 'Desactivar' })) {
             try {
                 const response = await fetch(`http://localhost:3310/api/units/${unitId}`, {
                     method: 'DELETE',
@@ -174,11 +176,11 @@ const EquipmentUnits = () => {
 
                 // Actualizar la lista de unidades
                 await fetchData();
-                alert('Unidad desactivada exitosamente');
+                notify('Unidad desactivada exitosamente', { variant: 'success' });
                 
             } catch (error) {
                 console.error('Error:', error);
-                alert(`Error: ${error.message}`);
+                notify(`Error: ${error.message}`, { variant: 'error' });
             }
         }
     };
@@ -202,11 +204,11 @@ const EquipmentUnits = () => {
 
             // Actualizar la lista de unidades
             await fetchData();
-            alert(`Estado actualizado a: ${newStatus}`);
+            notify(`Estado actualizado a: ${newStatus}`, { variant: 'success' });
             
         } catch (error) {
             console.error('Error:', error);
-            alert(`Error: ${error.message}`);
+            notify(`Error: ${error.message}`, { variant: 'error' });
         }
     };
 
@@ -266,18 +268,16 @@ const EquipmentUnits = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Equipos y Unidades">
                 <div className="equipment-units-container">
                     <div className="loading-spinner">Cargando unidades...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={ADMIN_NAV} subtitle="Panel de Administración" title="Equipos y Unidades">
             <div className="equipment-units-container">
                 <div className="eu-header">
                     <button className="back-button" onClick={() => navigate('/admin')}>
@@ -695,7 +695,7 @@ const EquipmentUnits = () => {
                     </div>
                 )}
             </div>
-        </>
+        </AppLayout>
     );
 };
 

@@ -26,8 +26,12 @@ import VolunteerGuides from './pages/volunteer/Guides.jsx';
 // Importaciones de Estado
 import StatusDashboard from './pages/StatusDashboard.jsx'; 
 
-import ProtectedRoute from './components/ProtectedRoute.jsx'; 
-import './index.css'; 
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import DialogHost from './components/DialogHost.jsx';
+import './index.css';
+// Estilos globales unificados de formularios/modales (se importan al final
+// para que armonicen las hojas de estilo por página en la cascada).
+import './styles/forms.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -71,6 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 <Route path="*" element={<h1 style={{textAlign: 'center'}}>404 Página no encontrada</h1>} />
 
             </Routes>
+            <DialogHost />
         </AuthProvider>
     </Router>
   </React.StrictMode>

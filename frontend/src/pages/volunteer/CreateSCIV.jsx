@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
+import AppLayout from '../../components/AppLayout';
+import { VOLUNTEER_NAV } from '../../config/nav';
 import './CreateSCIV.css';
+import { notify, confirmDialog } from '../../utils/dialog';
 
 const VolunteerCreateSCIV = () => {
     const navigate = useNavigate();
@@ -57,7 +59,7 @@ const VolunteerCreateSCIV = () => {
             setUsers(result.data || []);
         } catch (error) {
             console.error('Error al cargar usuarios:', error);
-            alert('Error al cargar la lista de usuarios');
+            notify('Error al cargar la lista de usuarios', { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -71,8 +73,8 @@ const VolunteerCreateSCIV = () => {
         }));
     };
 
-    const handleCancel = () => {
-        if (window.confirm('¿Estás seguro de que deseas cancelar? Los datos no guardados se perderán.')) {
+    const handleCancel = async () => {
+        if (await confirmDialog('¿Estás seguro de que deseas cancelar? Los datos no guardados se perderán.', { confirmText: 'Sí, cancelar', cancelText: 'Seguir editando' })) {
             navigate('/volunteer');
         }
     };
@@ -98,12 +100,12 @@ const VolunteerCreateSCIV = () => {
             }
 
             // Éxito
-            alert(`SCI creado exitosamente! ID: ${result.incidentId}`);
+            notify(`SCI creado exitosamente! ID: ${result.incidentId}`, { variant: 'success' });
             navigate('/volunteer');
             
         } catch (error) {
             console.error('Error al crear SCI:', error);
-            alert(`Error: ${error.message}`);
+            notify(`Error: ${error.message}`, { variant: 'error' });
         }
     };
 
@@ -127,18 +129,16 @@ const getUserInfo = (userId) => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <AppLayout navItems={VOLUNTEER_NAV} subtitle="Panel de Voluntario" title="Crear SCI">
                 <div className="create-sci-container">
                     <div className="loading-spinner">Cargando usuarios...</div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
     return (
-        <>
-            <Navbar />
+        <AppLayout navItems={VOLUNTEER_NAV} subtitle="Panel de Voluntario" title="Crear SCI">
             <div className="create-sci-container volunteer">
                 <div className="sci-header">
                     <button className="back-button" onClick={() => navigate('/volunteer')}>
@@ -389,7 +389,7 @@ const getUserInfo = (userId) => {
                     </div>
                 </form>
             </div>
-        </>
+        </AppLayout>
     );
 };
 
